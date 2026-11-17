@@ -232,7 +232,7 @@ body{background:var(--card);color:var(--ink);font-family:var(--f-body);font-size
     { id: "water", name: "Water source (for making black mulch)", k: "x", r: [-134, 287, 92, 52], label: " ", pond: true, bare: true },   /* Kyle 11/16: against the left edge, between EP Henry and the wood chip wall */
     { id: "tanks", name: "Water tanks (backup water for black mulch)", k: "x", r: [-36, 300, 64, 30], label: " ", tanks: true, bare: true },   /* Kyle 11/16 10:50 PM: two big black tanks by the lake, reserve water for making black mulch */
     { id: "hill", name: "Hill", k: "x", r: [210, 276, 350, 26], label: " ", hill: true, bare: true },   /* Kyle 11/16 10:21 PM: runs out to about the fill dirt */
-    { id: "fuel", name: "Fuel shed", k: "b", r: [-16, 507, 50, 20], label: "Fuel shed" },   /* Kyle 11/16: bigger */
+    { id: "fuel", name: "Fuel shed", k: "b", r: [-16, 507, 50, 20], label: "Fuel shed", hide: true },   /* Kyle 11/17 3:40 PM: not shown to customers */   /* Kyle 11/16: bigger */
     { id: "trucks", name: "Truck parking (company trucks)", k: "y", r: [-52, 530, 82, 63], label: "Truck parking", trucks: true },   /* Kyle 11/16 10:18 PM: between Techo-Bloc and the fuel shed — box truck, triaxle, 2 dump trucks, flatbed */
     { id: "bulk-mid", short: "Middle bins", name: "Bulk bins (middle)", k: "p", r: [92, 670, 84, 26], g: "Mulch & bulk", label: "Bulk" },
     { id: "brown-mulch", short: "Brown", name: "Brown mulch", k: "p", c: [96, 588], g: "Mulch & bulk" },
@@ -285,7 +285,7 @@ body{background:var(--card);color:var(--ink);font-family:var(--f-body);font-size
     "more-bulk": [S, UP, REC, [150, 860], [152, 745, "Keep going to the bins at the far side of the yard."]],
     "nicolock": [S, UP, main(800, "Keep going up the Main Road."), [272, 800]],
     "techo": [S, UP, REC, [150, 860], [80, 760], [70, 700, "Follow the curved road up the left side."], [50, 650]],
-    "ep-henry": [S, UP, REC, [150, 860], [80, 760], [70, 700, "Follow the curved road up the left side, past Techo-Bloc and the fuel station."], [40, 520], [22, 372]],
+    "ep-henry": [S, UP, REC, [150, 860], [80, 760], [70, 700, "Follow the curved road up the left side, past Techo-Bloc."], [40, 520], [22, 372]],
     "bulk-mid": [S, UP, REC, [150, 860], [150, 760], [134, 700, "Go past the back Bulk materials bins to the next row."]],
     "brown-mulch": [S, UP, main(588, "Keep going up the Main Road."), [118, 588]],
     "red-mulch": [S, UP, main(546, "Keep going up the Main Road."), [204, 546]],
@@ -651,7 +651,7 @@ body{background:var(--card);color:var(--ink);font-family:var(--f-body);font-size
           steps.push(line); return { pts: pts, end: D, steps: steps, turn: null }; } }
       return { pts: pts, end: D, steps: steps, turn: Math.hypot(hx, hy) > 12 ? (side < 0 ? "left" : "right") : null };
     }
-    if (bp === RECP){ if (k >= 2) steps.push("At the container yard, turn left toward Shipping / receiving."); if (k >= 5) steps.push("Follow the road up the left side, past the fertilizer building and Techo-Bloc."); if (k >= 14) steps.push("At the top of that road, curve back around to the left, behind the fuel shed and truck parking."); }
+    if (bp === RECP){ if (k >= 2) steps.push("At the container yard, turn left toward Shipping / receiving."); if (k >= 5) steps.push("Follow the road up the left side, past the fertilizer building and Techo-Bloc."); if (k >= 14) steps.push("At the top of that road, curve back around to the left, behind the truck parking."); }
     else { if (k >= 2) steps.push("Stay on the Main Road past the mulch piles to the wood chip wall."); if (k >= 5) steps.push("Go through the back gate, right after the wood chip wall.");
       if (bp === FILLP && k >= 7) steps.push("Just past the back gate, turn right and follow that road."); else if (bp === MAINP && k >= 6) steps.push("Stay on the road toward the back end of the property."); }
     return { pts: pts, end: D, steps: steps, turn: Math.hypot(hx, hy) > 12 ? (side < 0 ? "left" : "right") : null };
@@ -748,7 +748,7 @@ body{background:var(--card);color:var(--ink);font-family:var(--f-body);font-size
       "leave the parking lot by the office and turn left onto the main road.": "Salga del estacionamiento junto a la oficina y gire a la izquierda en el Camino principal.",
       "at the container yard, turn left toward shipping / receiving.": "En el patio de contenedores, gire a la izquierda hacia Envíos / Recepción.",
       "follow the road up the left side, past the fertilizer building and techo-bloc.": "Siga el camino por el lado izquierdo, pasando el Edificio de fertilizantes y Techo-Bloc.",
-      "at the top of that road, curve back around to the left, behind the fuel shed and truck parking.": "Al final de ese camino, dé la vuelta a la izquierda, detrás de la Caseta de combustible y el Estacionamiento de camiones.",
+      "at the top of that road, curve back around to the left, behind the truck parking.": "Al final de ese camino, dé la vuelta a la izquierda, detrás del Estacionamiento de camiones.",
       "stay on the main road past the mulch piles to the wood chip wall.": "Siga por el Camino principal, pasando los montones de mantillo, hasta el muro de astillas.",
       "go through the back gate, right after the wood chip wall.": "Pase por el portón trasero, justo después del muro de astillas.",
       "just past the back gate, turn right and follow that road.": "Justo después del portón trasero, gire a la derecha y siga ese camino.",
@@ -761,7 +761,7 @@ body{background:var(--card);color:var(--ink);font-family:var(--f-body);font-size
       "drive up the main road past the shipping containers and the nicolock yard.": "Suba por el Camino principal, pasando los contenedores y el patio de Nicolock.",
       "drop pallets at the pallet pile on your left.": "Deje las tarimas en el montón de tarimas a su izquierda.",
       "follow it to the corner, then keep straight toward the fertilizer building.": "Sígalo hasta la esquina y continúe derecho hacia el Edificio de fertilizantes.",
-      "follow the curved road up the left side, past techo-bloc and the fuel station.": "Siga el camino curvo por el lado izquierdo, pasando Techo-Bloc y la estación de combustible.",
+      "follow the curved road up the left side, past techo-bloc.": "Siga el camino curvo por el lado izquierdo, pasando Techo-Bloc.",
       "follow the curved road up the left side.": "Siga el camino curvo por el lado izquierdo.",
       "go past the back bulk materials bins to the next row.": "Pase los compartimentos de materiales a granel de atrás hasta la siguiente fila.",
       "go past the container yard, then turn left toward shipping / receiving and the fertilizer building.": "Pase el patio de contenedores y gire a la izquierda hacia Envíos / Recepción y el Edificio de fertilizantes.",
