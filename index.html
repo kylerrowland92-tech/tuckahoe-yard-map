@@ -1,0 +1,730 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="description" content="Peach Country Tuckahoe yard map — tap where you are going."><style>*,*::before,*::after{box-sizing:border-box}html,body{margin:0;padding:0}[hidden]{display:none!important}</style></head><body><title>Tuckahoe Yard Map</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;600;700&display=swap">
+<style>
+/* Layout: one phone screen. A slim header, the map filling the middle (drag / pinch / +− to zoom), and a bottom panel with five
+   category buttons → the places in that category → the route and its steps. */
+:root{
+  --ground:#efe9dc; --ground2:#e4dccb; --road:#cfc6b4; --road-edge:#b3a891; --ink:#2b2a26; --mut:#6c6658;
+  --bldg:#5d6b78; --bldg-ink:#ffffff; --pile:#8a6a45; --pile-soft:#c9b08d; --yard:#7a8f6a; --yard-soft:#c6d1ba;
+  --route:#d4251c; --card:#fbf8f1; --line:#d8cfbd; --chip:#f4efe4; --chip-on:#2b2a26; --chip-on-ink:#fbf8f1;
+  --f-sign:"Barlow Condensed","Arial Narrow",system-ui,sans-serif; --f-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --ground:#23221e; --ground2:#2b2925; --road:#3b3832; --road-edge:#565046; --ink:#ece6d8; --mut:#a59d8c;
+  --bldg:#7f93a5; --bldg-ink:#14181c; --pile:#c49a68; --pile-soft:#5b4a35; --yard:#9fb58b; --yard-soft:#3a4532;
+  --route:#ff4a3d; --card:#1b1a17; --line:#3a372f; --chip:#2a2823; --chip-on:#ece6d8; --chip-on-ink:#1b1a17; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --ground:#23221e; --ground2:#2b2925; --road:#3b3832; --road-edge:#565046; --ink:#ece6d8; --mut:#a59d8c;
+  --bldg:#7f93a5; --bldg-ink:#14181c; --pile:#c49a68; --pile-soft:#5b4a35; --yard:#9fb58b; --yard-soft:#3a4532;
+  --route:#ff4a3d; --card:#1b1a17; --line:#3a372f; --chip:#2a2823; --chip-on:#ece6d8; --chip-on-ink:#1b1a17; color-scheme:dark }
+html,body{height:100%}
+body{background:var(--card);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.4;overflow:hidden}
+[hidden]{display:none!important}
+.app{height:100%;display:flex;flex-direction:column}
+.top{display:flex;align-items:center;gap:10px;padding-block:8px 6px;padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px))}
+.top h1{font-family:var(--f-sign);font-weight:800;font-size:22px;margin:0;line-height:1;flex:1;min-width:0}
+.top h1 small{display:block;font-family:var(--f-body);font-weight:600;font-size:11.5px;color:var(--mut);margin-top:2px}
+/* Kyle 11/16 11:39 PM: on phones the title bar is one slim line, so the map gets the room */
+@media (max-width:759px){.top{padding-block:3px 3px;gap:8px}.top h1{font-size:16px}.top h1 small{display:none}.top button{min-height:26px;padding:2px 9px;font-size:12px}}
+.top button{font:inherit;font-size:12.5px;font-weight:700;min-height:32px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--chip);color:var(--ink)}
+/* Kyle 11/16 8:21 PM: the map on a dark dirt ground, whatever the phone's light/dark setting */
+.mapwrap{--ground:#2b2722; --ground2:#24211d; --road:#57514a; --road-edge:#6a6359; --ink:#f1eadc; --mut:#bdb3a2;
+  --bldg:#8aa0b4; --bldg-ink:#111518; --pile:#d0a575; --pile-soft:#6a5238; --yard:#a8bf93; --yard-soft:#3c4733; --card:#2b2722;
+  --pallet:#e4ded0; --pallet-edge:#9b8f78; --pallet-wood:#a9824f}
+.mapwrap{position:relative;flex:1;min-height:0;background:var(--ground);border-block:1px solid var(--line);touch-action:none;overflow:hidden}
+.mapwrap svg{display:block;width:100%;height:100%;cursor:grab}
+.zoom{position:absolute;right:max(10px,env(safe-area-inset-right,0px));top:10px;display:flex;flex-direction:column;gap:6px}
+.zoom button{width:42px;height:42px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:22px;font-weight:700;line-height:1;box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.zoom button.wide{font-size:11px;font-weight:700}
+.panel{padding-block:10px calc(10px + env(safe-area-inset-bottom,0px));padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:8px}
+.ask{font-family:var(--f-sign);font-weight:700;font-size:14px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);display:flex;align-items:center;gap:8px}
+.ask button{font:inherit;text-transform:none;letter-spacing:0;font-family:var(--f-body);font-size:13px;font-weight:700;min-height:30px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--chip);color:var(--ink);margin-left:auto}
+.btns{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:7px}
+.btns .hd{grid-column:1/-1;font-family:var(--f-sign);font-weight:700;font-size:13px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);margin:6px 0 -2px}
+.btns button{font:inherit;font-weight:700;font-size:15.5px;min-height:48px;padding:6px 8px;border-radius:12px;border:1px solid var(--line);background:var(--chip);color:var(--ink);line-height:1.15}
+.btns.cats button{font-family:var(--f-sign);font-size:19px;font-weight:800;color:#fff;border:0;background:var(--c);box-shadow:0 2px 0 rgba(0,0,0,.25);text-shadow:0 1px 1px rgba(0,0,0,.35)}
+.btns.cats button span{display:block;font-size:22px;line-height:1;margin-bottom:2px}
+/* Kyle 11/16 11:47 PM: on phones it's a map first — the buttons are small chips in two rows that scroll sideways, and the steps stay short */
+@media (max-width:759px){
+  .panel{gap:5px;padding-block:6px calc(6px + env(safe-area-inset-bottom,0px))}
+  .ask{font-size:12px}.ask button{min-height:26px;font-size:12px}
+  .btns{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,auto);grid-template-columns:none;grid-auto-columns:max-content;gap:5px;overflow-x:auto;overscroll-behavior-x:contain;padding-bottom:2px;scrollbar-width:none}
+  .btns::-webkit-scrollbar{display:none}
+  .btns .hd{display:none}
+  .btns button{grid-column-start:auto !important;min-height:32px;font-size:13px;padding:3px 10px;border-radius:9px;white-space:nowrap}
+  .btns:not(.cats) button{border-left-width:5px}
+  .btns.cats{grid-template-rows:repeat(2,auto)}
+  .btns.cats button{display:flex;align-items:center;gap:5px;font-size:13.5px;min-height:34px;padding:3px 10px;line-height:1.1}
+  .btns.cats button span{font-size:14px;margin:0}
+  .panel .dest{font-size:18px}.panel .steps{max-height:19vh;font-size:13px;gap:1px}
+}   /* phones: a bit more compact so the map gets more room */
+.btns:not(.cats) button{border-left:8px solid var(--c,var(--line));background:color-mix(in srgb, var(--c) 18%, var(--chip))}
+/* Kyle 11/16 9:58 PM: open close in on the front of the yard; say they can zoom out */
+.hint{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);background:rgba(20,18,16,.88);color:#f1eadc;font-size:13px;font-weight:700;padding:7px 12px;border-radius:999px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+/* on a computer or tablet the buttons sit beside the map instead of under it */
+@media (min-width:760px){
+  .app{display:grid;grid-template-columns:340px 1fr;grid-template-rows:auto 1fr}
+  .top{grid-column:1 / -1}
+  .panel{grid-column:1;grid-row:2;overflow-y:auto;border-right:1px solid var(--line);padding-top:16px}
+  .mapwrap{grid-column:2;grid-row:2;border-block:0}
+  .btns{grid-template-columns:1fr 1fr}
+  .btns.cats{grid-template-columns:1fr}
+  .btns.cats button{min-height:64px;font-size:22px;text-align:left;padding:8px 16px;display:flex;align-items:center;gap:12px}
+  .btns.cats button span{margin:0}
+  .steps{max-height:none}
+}
+.btns button:focus-visible,.zoom button:focus-visible,.ask button:focus-visible{outline:2px solid var(--route);outline-offset:2px}
+.dest{font-family:var(--f-sign);font-weight:800;font-size:24px;line-height:1.05}
+.steps{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px;max-height:26vh;overflow-y:auto;font-size:14px}
+.steps li{display:grid;grid-template-columns:22px 1fr;gap:6px;align-items:start}
+.steps li::before{content:attr(data-n);display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--route);color:#fff;font-family:var(--f-sign);font-weight:800;font-size:13px;margin-top:1px}
+.lbl{font-family:var(--f-sign);font-weight:700;fill:var(--ink);font-size:11px;letter-spacing:.02em;paint-order:stroke;stroke:var(--ground);stroke-width:3px;stroke-linejoin:round}
+.lbl.bl{stroke:none}
+.lbl.sm{font-size:9px;font-weight:600;fill:var(--mut)}
+.lbl.bl{fill:var(--bldg-ink);font-size:10.5px}
+/* Kyle 11/16 10:30 PM: the important names in yellow */
+.lbl:not(.sm){fill:#ffd400}
+.lbl.sm{fill:#74bdf2}
+.tel{cursor:pointer}.tel text{text-decoration:underline}   /* Kyle 11/16 10:32 PM: the less important names in blue */
+.lbl.bl{stroke:#1d1b18;stroke-width:2.6px;paint-order:stroke}
+/* names grow a little as you zoom out, so they stay readable on a whole-yard view (--k is set with the zoom) */
+.lbl:not(.sm):not(.bl){font-size:calc(11px * var(--k, 1));stroke-width:calc(3px * var(--k, 1))}
+.lbl.bl{font-size:calc(10.5px * var(--k, 1))}
+.hit{cursor:pointer}
+#route{fill:none;stroke:var(--route);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:2 8;vector-effect:non-scaling-stroke}
+.flag{font-family:var(--f-sign);font-weight:800;fill:var(--route);paint-order:stroke;stroke:var(--card);stroke-linejoin:round}
+#route,.pulse,.flag,.youhere{pointer-events:none}
+@media (prefers-reduced-motion: no-preference){ #route{animation:march 1.1s linear infinite} .pulse.on{animation:pulse 1.6s ease-out infinite} }
+@keyframes march{to{stroke-dashoffset:-10}}
+@keyframes pulse{0%{opacity:.7}100%{opacity:0}}
+.qr{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:16px}
+.qrcard{background:#fff;color:#111;border-radius:14px;padding:18px;text-align:center;width:min(340px,100%)}
+.qrcard b{display:block;font-family:var(--f-sign);font-size:26px}
+.qrcard span{display:block;font-size:13px;color:#444}
+.qrcard svg{width:100%;height:auto;max-width:260px;margin:8px auto;display:block}
+.qrcard .tip{font-size:12px;color:#666;margin-top:8px}
+.qrcard button{margin-top:10px;font:inherit;font-weight:700;min-height:38px;padding:0 16px;border-radius:9px;border:1px solid #ccc;background:#f2f2f2;color:#111}
+</style>
+
+<div class="app">
+  <header class="top">
+    <h1>Tuckahoe Yard Map<small>Peach Country · tap where you're going</small></h1>
+    <button type="button" id="moveBtn" hidden>Move piles</button><button type="button" id="qrOpen" aria-label="Show the QR code">QR</button>
+  </header>
+  <div class="mapwrap" id="wrap">
+    <svg id="map" viewBox="0 0 360 1815" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="mapTitle"><title id="mapTitle">Drawing of the Tuckahoe yard, front gate at the bottom, back of the property at the top</title></svg>
+    <div class="zoom"><button type="button" id="zIn" aria-label="Zoom in">+</button><button type="button" id="zOut" aria-label="Zoom out">−</button><button type="button" id="zAll" class="wide" aria-label="Show the whole yard">All</button></div>
+    <div class="hint" id="hint">Pinch, or tap All, to see the whole yard</div>
+  </div>
+  <div class="panel" id="panel">
+    <div class="ask" id="ask"><span id="askText">Where are you going?</span><button type="button" id="back" hidden>‹ Back</button></div>
+    <div class="btns cats" id="btns"></div>
+    <div id="routeBox" hidden><div class="dest" id="dest"></div><ol class="steps" id="steps"></ol></div>
+  </div>
+</div>
+<div class="qr" id="qr" hidden><div class="qrcard"><b>Find your way in the yard</b><span>Scan with your phone camera</span><div id="qrImg"></div><span>Tap where you're going and follow the red line · Peach Country, Tuckahoe</span>
+  <p class="tip">For the front table: screenshot this card, print and laminate it. Share the map first (anyone with the link) so phones open it without signing in.</p><button type="button" id="qrClose">Close</button></div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+(function(){
+  var NS = "http://www.w3.org/2000/svg", svg = document.getElementById("map");
+  function el(tag, a, parent){ var e = document.createElementNS(NS, tag); for (var k in a) e.setAttribute(k, a[k]); (parent || svg).appendChild(e); return e; }
+  /* 60 acres (Kyle 11/16): the sketches are drawn tight, so the back and the middle are stretched out; every y below goes through Y() */
+  function Y(y){ return y < 330 ? y * 820 / 330 : y < 700 ? 820 + (y - 330) * 500 / 370 : 1320 + (y - 700); }   // Kyle 11/16: the back gate is about halfway down the property
+  function poly(pts){ return pts.map(function(q, i){ return (i ? "L" : "M") + q[0] + " " + Y(q[1]); }).join(" "); }
+  function text(x, y, s, cls, parent, anchor){ var t = el("text", { x: x, y: Y(y), "class": "lbl " + (cls || ""), "text-anchor": anchor || "middle" }, parent); t.textContent = s; return t; }
+
+  /* ---------- the ground, roads and zones ---------- */
+  el("rect", { x: -400, y: -400, width: 1160, height: 2615, fill: "var(--ground)" });
+  el("rect", { x: -400, y: -400, width: 1160, height: Y(330) + 400, fill: "var(--ground2)" });
+  var defs = el("defs", {}), pat = el("pattern", { id: "grit", width: 26, height: 26, patternUnits: "userSpaceOnUse" }, defs);
+  [[3, 4, .9], [14, 9, .6], [21, 19, .8], [8, 20, .5], [18, 2, .5]].forEach(function(d){ el("circle", { cx: d[0], cy: d[1], r: d[2], fill: "#fff", opacity: .07 }, pat); });
+  el("rect", { x: -400, y: -400, width: 1160, height: 2615, fill: "url(#grit)" });
+  var roadStyle = { fill: "none", stroke: "var(--road)", "stroke-width": 18, "stroke-linecap": "round", "stroke-linejoin": "round" };
+  var edge = { fill: "none", stroke: "var(--road-edge)", "stroke-width": 20, "stroke-linecap": "round", "stroke-linejoin": "round" };
+  var EPC = [[9.0,851.4],[-3.2,842.4],[-18.9,839.1],[-36.0,842.0],[-52.8,851.2],[-67.2,867.1],[-77.6,890.0],[-82.0,920.0],[-81.6,952.7],[-79.1,981.5],[-76.0,1007.5],[-73.6,1031.9],[-73.1,1055.6],[-76.0,1080.0],[-81.8,1107.6],[-85.3,1123.9],[-89.4,1134.4]];   /* Kyle 11/16 10:23 PM: the EP Henry road curves back around to the left, behind the fuel shed, into the open space by the truck parking */
+  /* Kyle 11/16 10:59 PM: every road, open area and the office lane are point lists Kyle can bend in Move mode (white dots).
+     RD_BAKED is the shared layout; a viewer's own unsaved bends live in their browser until Claude bakes them in. */
+  var RD_BAKED = {   /* Kyle's road layout 11/16 11:14 PM, straightened and joined to the Main Road */
+    main: [[245, 1770], [245, 833.5], [240, 800.1], [222, 760.4], [200, 730.5], [196, 710.7], [196, 74.5]],
+    rec: [[245, 1424], [92, 1424], [78, 1412], [72, 1380], [66, 1320], [59, 1225], [52, 1136], [36, 1022.7], [22, 928.1], [16, 865.9]].concat(EPC),
+    cross: [[52, 1136], [245, 1136]],
+    front: [[140, 1712], [245, 1712]],
+    fill: [[196, 564.1], [350, 564.1], [408.5, 560.6], [464, 552.5], [516.6, 539.4], [566, 522]],
+    lane: [[70.4, 1475.9], [70.9, 1623.1]],
+    lotA: [[66, 1182], [236, 1182], [236, 1471], [152, 1471]],
+    lotB: [[-6, 1524], [46, 1524], [145, 1622], [-6, 1622]],
+    ring: [[-105, 1150]]
+  };
+  var RD = JSON.parse(JSON.stringify(RD_BAKED));
+  try{ var myRd = JSON.parse(localStorage.getItem("ymap-roads") || "null"); if (myRd && myRd.v === 2 && myRd.rd && myRd.rd.main && myRd.rd.cross) RD = myRd.rd; }catch(_){}
+  var LOT = { fill: "#4a453d", stroke: "#5b554b", "stroke-width": 1.2, "stroke-linejoin": "round" };
+  var roadG = el("g", {});
+  function dOf(pts, close){ return "M" + pts.map(function(q){ return q[0] + " " + q[1]; }).join(" L") + (close ? " Z" : ""); }
+  function drawRoads(){
+    roadG.textContent = "";
+    /* Kyle 11/16 11:11 PM: no shading on the open areas — too messy. The office lane is drawn as a regular road. */
+    var c = RD.ring[0], ds = ["main", "rec", "cross", "front", "fill"].map(function(k){ return dOf(RD[k]); });
+    ds.push("M" + (c[0] + 22) + " " + c[1] + " A22 22 0 1 0 " + (c[0] - 22) + " " + c[1] + " A22 22 0 1 0 " + (c[0] + 22) + " " + c[1]);
+    ds.forEach(function(d){ el("path", Object.assign({ d: d }, edge), roadG); });
+    ds.forEach(function(d){ el("path", Object.assign({ d: d }, roadStyle), roadG); });
+    ds.forEach(function(d){ el("path", { d: d, fill: "none", stroke: "rgba(255,255,255,.22)", "stroke-width": 1, "stroke-dasharray": "7 9" }, roadG); });
+  }
+  drawRoads();
+  /* Kyle 11/16 8:19 PM: the wood chip wall runs all the way across to the left — you can't get through it — with a hill on the other side */
+  /* Kyle 11/16 10:15 PM: the hill is across the road from the wall — the back gate is the only way through. The hill is now its own piece (id "hill") so it can be moved. */
+  /* Kyle 11/16 11:18 PM: Main Road was hard to read sideways — now flat road signs sitting on the road */
+  var roadSigns = el("g", {});
+  function drawRoadSigns(){ roadSigns.textContent = ""; [1290, 960, 420].forEach(function(yy){ var x = yy < 720 ? 196 : 245;   /* past the back gate the Main Road runs further left */
+    el("rect", { x: x - 25, y: yy - 7, width: 50, height: 13, rx: 3, fill: "#1d1b18", stroke: "#74bdf2", "stroke-width": .8 }, roadSigns);
+    var t = el("text", { x: x, y: yy + 3, "text-anchor": "middle", "font-size": 9, "font-weight": 700, fill: "#9fd0ee", "font-family": "Barlow Condensed, Arial Narrow, sans-serif", "letter-spacing": ".04em" }, roadSigns); t.textContent = "Main Road"; }); }
+  drawRoadSigns();
+
+  /* ---------- places: kind b = building, p = pile/bins, y = pallet yard, x = landmark (not a stop) ---------- */
+  var P = [
+    // front
+    { id: "office", name: "Office", k: "b", r: [57, 1001, 169, 58], g: "Front", start: true, huge: true },   /* Kyle 11/16 10:44 PM: just "Office", nice and big */
+    { id: "paver-display", short: "Display patios", name: "Paver display (outdoor patios)", k: "y", r: [6, 1022, 52, 96], g: "Front", label: "Paver display", patio: true },
+    { id: "bulk-front", short: "Bulk materials (front)", name: "Bulk materials (by the lot)", k: "p", r: [268, 1040, 82, 32], g: "Front", label: "Bulk materials", has: "1–3\" river rock, Quarry blend, Concrete sand, DGA, ¾\" gray stone, ¾\" river rock, 1½\" river rock, Infield mix" },
+    { id: "bagged", name: "Bagged mulch & soil", k: "x", r: [96, 1063, 128, 11], label: "Bagged goods out front", hide: true },   /* Kyle 11/16 10:48 PM: not needed on the map */
+    { id: "propane", name: "Propane fuel tank station", k: "x", r: [123, 914, 20, 18], label: " ", propane: true },   /* Kyle 11/16: behind the containers, next to number 5 — its own piece so it moves on its own */
+    { id: "container-yard", name: "Container yard", k: "x", r: [148, 868, 84, 86], label: " " },
+    /* Kyle 11/16 10:08 PM: what is in the front bulk bins */
+    { id: "rr-1-3", name: "River rock 1–3\" — front bulk bins", short: "River rock 1–3\"", hide: true, at: "bulk-front", where: "in the front bulk bins" },
+    { id: "quarry-blend", name: "Quarry blend — front bulk bins", short: "Quarry blend", hide: true, at: "bulk-front", where: "in the front bulk bins" },
+    { id: "concrete-sand", name: "Concrete sand — front bulk bins", short: "Concrete sand", hide: true, at: "bulk-front", where: "in the front bulk bins" },
+    { id: "dga", name: "DGA — front bulk bins", short: "DGA", hide: true, at: "bulk-front", where: "in the front bulk bins" },
+    { id: "gray-34", name: "Gray stone ¾\" — front bulk bins", short: "Gray stone ¾\"", hide: true, at: "bulk-front", where: "in the front bulk bins" },
+    { id: "rr-34", name: "River rock ¾\" — front bulk bins", short: "River rock ¾\"", hide: true, at: "bulk-front", where: "in the front bulk bins" },
+    { id: "rr-15", name: "River rock 1½\" — front bulk bins", short: "River rock 1½\"", hide: true, at: "bulk-front", where: "in the front bulk bins" },
+    { id: "infield", name: "Infield mix — front bulk bins", short: "Infield mix", hide: true, at: "bulk-front", where: "in the front bulk bins" },
+    /* Kyle 11/16 10:10 PM: the back bulk bins are double-sided, one wall down the middle. 11:42 PM: show only the area for now, not which bin, until the bins are confirmed */
+    { id: "bk-bar-sand", name: "Bar sand — back bulk bins", short: "Bar sand", hide: true, at: "more-bulk", where: "in the back bulk bins" },
+    { id: "bk-gray-38", name: "Gray stone ⅜\" — back bulk bins", short: "Gray stone ⅜\"", hide: true, at: "more-bulk", where: "in the back bulk bins" },
+    { id: "bk-goose", name: "Goose egg 2–4\" / white bar sand — back bulk bins", short: "Goose egg 2–4\" / white bar sand", hide: true, at: "more-bulk", where: "in the back bulk bins" },
+    { id: "bk-rice", name: "Rice gravel — back bulk bins", short: "Rice gravel", hide: true, at: "more-bulk", where: "in the back bulk bins" },
+    { id: "bk-rr-48", name: "River rock 4–8\" — back bulk bins", short: "River rock 4–8\"", hide: true, at: "more-bulk", where: "in the back bulk bins" },
+    { id: "bk-millings", name: "Millings — back bulk bins", short: "Millings", hide: true, at: "more-bulk", where: "in the back bulk bins" },
+    { id: "bk-wr-115", name: "White round 1–1½\" — back bulk bins", short: "White round 1–1½\"", hide: true, at: "more-bulk", where: "in the back bulk bins" },
+    { id: "bk-wr-34", name: "White round ¾\" — back bulk bins", short: "White round ¾\"", hide: true, at: "more-bulk", where: "in the back bulk bins" },
+    { id: "bk-yel-34", name: "Yellow ¾\" — back bulk bins", short: "Yellow ¾\"", hide: true, at: "more-bulk", where: "in the back bulk bins" },
+    { id: "bk-yel-38", name: "Yellow ⅜\" — back bulk bins", short: "Yellow ⅜\"", hide: true, at: "more-bulk", where: "in the back bulk bins" },
+    { id: "bk-red-34", name: "Red crushed ¾\" (driveway stone) — back bulk bins", short: "Red crushed ¾\"", hide: true, at: "more-bulk", where: "in the back bulk bins" },
+    { id: "bk-red-38", name: "Red crushed ⅜\" (driveway stone) — back bulk bins", short: "Red crushed ⅜\"", hide: true, at: "more-bulk", where: "in the back bulk bins" },
+    /* Kyle 11/17 12:59 AM: fertilizer and seed sell fast — their own section, both at the Fertilizer Building */
+    { id: "fertilizer", name: "Fertilizer — Fertilizer Building", short: "Fertilizer", hide: true, at: "fert", where: "in the Fertilizer Building" },
+    { id: "seed", name: "Seed — Fertilizer Building", short: "Seed", hide: true, at: "fert", where: "in the Fertilizer Building" },
+    { id: "containers-1-5", name: "Containers 1–5 (standing, behind the office)", short: "Containers 1–5", hide: true },
+    { id: "containers-6-9", name: "Containers 6–9 (lying across, by the fertilizer building)", short: "Containers 6–9", hide: true },
+    { id: "shipping", name: "Shipping", k: "x", r: [90, 946, 38, 14], label: "Shipping" },   /* Kyle 11/16: shorter, so the lane runs straight to the office */
+    { id: "pallets", name: "Pallet returns", short: "Pallet returns", k: "x", r: [22, 938, 22, 48], label: "Pallets", pstack: true },   /* Kyle 11/16 11:17 PM: a place people drive to — they return pallets */
+    { id: "fert", short: "Fertilizer building", name: "Fertilizer building & mechanic shop", k: "b", r: [26, 710, 40, 186], g: "Front", label: "Fertilizer building" },
+    { id: "receiving", short: "Shipping / receiving", name: "Shipping / receiving yard", k: "y", r: [116, 782, 84, 44], g: "Front", label: "Shipping / receiving", truck: true },
+    { id: "more-bulk", short: "Bulk materials (back)", name: "Bulk materials (back, double-sided bins)", k: "p", r: [108, 708, 88, 40], g: "Front", label: "Bulk materials", bins2: true,
+      has: "Bar sand, ⅜\" gray stone, 2–4\" goose egg / white bar sand, Rice gravel, 4–8\" river rock, Millings, 1–1½\" white round, ¾\" white round, ¾\" yellow, ⅜\" yellow, ¾\" red crushed (driveway stone), ⅜\" red crushed (driveway stone)" },
+    { id: "nicolock", short: "Nicolock", name: "Nicolock yard", k: "y", r: [272, 552, 80, 418],   /* Kyle 11/16: runs up to the cedar mulch */ g: "Hardscape yards", label: "Nicolock", lblBelow: true },
+    // middle
+    { id: "techo", short: "Techo-Bloc", name: "Techo-Bloc yard", k: "y", r: [8, 598, 40, 96], g: "Hardscape yards", label: "Techo-Bloc" },
+    { id: "ep-henry", short: "Belgard / EP Henry", name: "Belgard / EP Henry yard (cul-de-sac)", k: "y", r: [-18, 527.6, 76, 56.2], g: "Hardscape yards", label: "Belgard / EP Henry", culdesac: true, bare: true },   /* Kyle 11/16 10:14 PM: a big circle you drive around — pavers around the outside and a few in the middle */
+    { id: "water", name: "Water source (for making black mulch)", k: "x", r: [-134, 287, 92, 52], label: " ", pond: true, bare: true },   /* Kyle 11/16: against the left edge, between EP Henry and the wood chip wall */
+    { id: "tanks", name: "Water tanks (backup water for black mulch)", k: "x", r: [-36, 300, 64, 30], label: " ", tanks: true, bare: true },   /* Kyle 11/16 10:50 PM: two big black tanks by the lake, reserve water for making black mulch */
+    { id: "hill", name: "Hill", k: "x", r: [210, 276, 350, 26], label: " ", hill: true, bare: true },   /* Kyle 11/16 10:21 PM: runs out to about the fill dirt */
+    { id: "fuel", name: "Fuel shed", k: "b", r: [-16, 507, 50, 20], label: "Fuel shed" },   /* Kyle 11/16: bigger */
+    { id: "trucks", name: "Truck parking (company trucks)", k: "y", r: [-52, 530, 82, 63], label: "Truck parking", trucks: true },   /* Kyle 11/16 10:18 PM: between Techo-Bloc and the fuel shed — box truck, triaxle, 2 dump trucks, flatbed */
+    { id: "bulk-mid", short: "Middle bins", name: "Bulk bins (middle)", k: "p", r: [92, 670, 84, 26], g: "Mulch & bulk", label: "Bulk" },
+    { id: "brown-mulch", short: "Brown", name: "Brown mulch", k: "p", c: [96, 588], g: "Mulch & bulk" },
+    { id: "red-mulch", short: "Red", name: "Red mulch", k: "p", c: [184, 546], g: "Mulch & bulk" },
+    { id: "cedar-mulch", short: "Cedar", name: "Cedar mulch", k: "p", c: [302, 496], g: "Mulch & bulk" },
+    { id: "playground-mulch", short: "Playground", name: "Playground mulch", k: "p", c: [186, 408], g: "Mulch & bulk" },
+    { id: "root-mulch", short: "Root mulch", name: "Root mulch", k: "p", c: [302, 380], g: "Mulch & bulk" },
+    { id: "black-mulch", short: "Black", name: "Black mulch", k: "p", c: [98, 392], g: "Mulch & bulk", sz: 27, note: "On the way out: loop around behind Brown Mulch and between the bulk bins, or go all the way around across Shipping / Receiving to the Main Road." }   /* Kyle 11/16: the biggest mulch pile */,
+    
+    // back
+    { id: "back-gate", name: "Back gate", k: "x", r: [176, 284, 44, 14], label: "BACK GATE", gate: true, bare: true },   /* Kyle 11/16: bigger and yellow so people see it */
+    { id: "wood-chips", short: "Wood chips", name: "Wood chips", k: "p", r: [-132, 282, 318, 20], g: "Back of the property", label: "WOOD CHIP WALL — no way through", big: true },
+    { id: "logs", short: "Logs", name: "Logs", k: "p", c: [128, 203], g: "Back of the property", sz: 34 }   /* Kyle 11/16: logs, wood waste and topsoil are the biggest piles */,
+    { id: "wood-waste", short: "Wood waste", name: "Wood waste", k: "p", c: [120, 150], g: "Back of the property", sz: 34 },
+    { id: "hoop-house", name: "Straw & peat moss (hoop house)", short: "Straw & peat moss", k: "b", r: [220, 150, 130, 72], g: "Back of the property", label: "HOOP HOUSE", big: true },
+    { id: "fill-dirt", short: "Fill dirt", name: "Fill dirt", k: "p", c: [338, 248], g: "Back of the property", label: "Fill dirt →" },
+    { id: "compost", name: "Compost", k: "p", c: [84, 104], g: "Back of the property" },
+    { id: "mushroom-soil", short: "Mushroom soil", name: "Mushroom soil", k: "p", c: [128, 82], g: "Back of the property" },
+    { id: "topsoil", name: "Topsoil", k: "p", c: [76, 44], g: "Back of the property", big: true },
+    { id: "screener", name: "Dirt screener", k: "x", r: [126, 44, 58, 26], label: " ", screener: true, bare: true },   /* Kyle 11/16 11:11 PM: a big screening machine */
+    { id: "grass", short: "Grass dump", name: "Grass dumping", k: "p", c: [234, 52], g: "Back of the property", label: "Grass dump" },
+    /* Kyle 11/16 11:16 PM: 5 windrows, each its own piece so they move one at a time */
+    { id: "windrow-1", name: "Windrow 1", k: "p", r: [-18, -13.9, 9, 64], label: " ", windrow1: true, bare: true },
+    { id: "windrow-2", name: "Windrow 2", k: "p", r: [4, -13.9, 9, 64], label: " ", windrow1: true, bare: true },
+    { id: "windrow-3", name: "Windrow 3", k: "p", r: [26, -13.9, 9, 64], label: " ", windrow1: true, bare: true },
+    { id: "windrow-4", name: "Windrow 4", k: "p", r: [48, -13.9, 9, 64], label: " ", windrow1: true, bare: true },
+    { id: "windrow-5", name: "Windrow 5", k: "p", r: [70, -13.9, 9, 64], label: " ", windrow1: true, bare: true },
+    { id: "windrow", name: "Windrows", k: "p", r: [14, -10.3, 112, 64], label: "Windrows", windrows: true, bare: true, hide: true }   /* Kyle 11/16 10:46 PM: about 10 long windrows running front to back, ~30 ft wide, ~400 ft long */
+  ];
+  var BY = {}; P.forEach(function(p){ BY[p.id] = p; });
+
+  /* routes: points from the front lot (you are at the counter), with a step on the points that change direction */
+  var S = [178, 1092, "Leave the parking lot by the office and turn left onto the Main Road."];   /* Kyle 11/17: directions the way he gives them */
+  var UP = [245, 1092];
+  var REC = [245, 860, "At the containers, turn left into the Shipping / Receiving yard."];
+  var BACK = [[245, 335, "Stay on the Main Road past the mulch piles to the wood chip wall."], [196, 290, "Go through the back gate, right after the wood chip wall."]];
+  function main(y, step){ return [245, y, step]; }
+  var R = {
+    "black-mulch": [S, UP, [245, 415, "Drive up the Main Road past the shipping containers and the Nicolock yard."], [100, 415, "Just past Red Mulch, turn left between Red Mulch and Playground Mulch, toward Black Mulch."], [100, 386]],   /* Kyle 11/17 12:24 AM */
+    "office": [[178, 1072, "You're here — the counter is in the office."]],
+    "paver-display": [S, [140, 1092], [60, 1092, "Walk past the left end of the office — the patio and wall displays are on the lawn."], [48, 1076]],
+    "bulk-front": [S, UP, main(1056), [268, 1056]],
+    "fert": [S, UP, REC, [150, 860], [80, 820, "The fertilizer building is the long building on the left; the mechanic shop is its end door nearest the office."]],
+    "receiving": [S, UP, REC, [156, 840]],
+    "pallets": [S, UP, [245, 804, "Just above the container yard, turn left."], [92, 804], [40, 804, "Follow it to the corner, then keep straight toward the Fertilizer Building."], [40, 930, "Turn left along the Fertilizer Building."], [12, 930, "Drop pallets at the pallet pile on your left."]],
+    /* Kyle 11/16 8:21 PM: two ways in. 1–5 open onto the space between the containers and the back of the office;
+       6–9 are reached by going past the containers, left toward Shipping / receiving and the fertilizer building, then back toward the office */
+    "containers-1-5": [S, UP, main(981, "Right behind the office, turn left."), [192, 981, "Containers 1–5 face the open space between the office and the containers."]],
+    "containers-6-9": [S, UP, main(858, "Go past the container yard, then turn left toward Shipping / receiving and the fertilizer building."), [120, 858, "Cut back toward the office."], [120, 908, "Containers 6–9 are on your left, across from the fertilizer building."]],
+    "more-bulk": [S, UP, REC, [150, 860], [152, 745, "Keep going to the bins at the far side of the yard."]],
+    "nicolock": [S, UP, main(800, "Keep going up the Main Road."), [272, 800]],
+    "techo": [S, UP, REC, [150, 860], [80, 760], [70, 700, "Follow the curved road up the left side."], [50, 650]],
+    "ep-henry": [S, UP, REC, [150, 860], [80, 760], [70, 700, "Follow the curved road up the left side, past Techo-Bloc and the fuel station."], [40, 520], [22, 372]],
+    "bulk-mid": [S, UP, REC, [150, 860], [150, 760], [134, 700, "Go past the back Bulk materials bins to the next row."]],
+    "brown-mulch": [S, UP, main(588, "Keep going up the Main Road."), [118, 588]],
+    "red-mulch": [S, UP, main(546, "Keep going up the Main Road."), [204, 546]],
+    "cedar-mulch": [S, UP, main(496, "Keep going up the Main Road."), [284, 496]],
+    "playground-mulch": [S, UP, main(408, "Keep going up the Main Road."), [206, 408]],
+    "root-mulch": [S, UP, main(380, "Keep going up the Main Road."), [284, 380]],
+    /* Kyle 11/16 9:58 PM: wood chips are dumped along the wall right by the back gate — Main Road to the gate, then left */
+    "wood-chips": [S, UP, [245, 340, "Stay on the Main Road past the mulch piles, all the way to the back gate."], [240, 322], [222, 306, "At the back gate, turn left \u2014 dump along the wood chip wall."], [168, 301]],
+    "logs": [S, UP].concat(BACK).concat([[196, 203], [146, 203]]),
+    "wood-waste": [S, UP].concat(BACK).concat([[196, 150], [140, 150]]),
+    "hoop-house": [S, UP].concat(BACK).concat([[196, 184], [220, 184]]),
+    "fill-dirt": [S, UP].concat(BACK).concat([[196, 227, "Turn right just past the back gate."], [338, 227]]),
+    "compost": [S, UP].concat(BACK).concat([[196, 104, "Stay on the road to the back end of the property."], [96, 104]]),
+    "mushroom-soil": [S, UP].concat(BACK).concat([[196, 82, "Stay on the road to the back end of the property."], [142, 82]]),
+    "topsoil": [S, UP].concat(BACK).concat([[196, 48, "Stay on the road all the way to the back end."], [104, 48]]),
+    "grass": [S, UP].concat(BACK).concat([[196, 60, "Stay on the road to the back end of the property."], [216, 60]])
+  };
+
+  /* Kyle 11/16 10:46 PM: names in title case — Container Yard, Shipping / Receiving, Fertilizer Building, Brown Mulch (first letter only) */
+  var SMALLW = { of: 1, the: 1, and: 1, for: 1, to: 1, a: 1, at: 1, by: 1, in: 1, on: 1, or: 1 };
+  function tc(str){ if (!str) return str; var first = true;
+    return String(str).replace(/[A-Za-z][A-Za-z']*/g, function(w, i){ var lw = w.toLowerCase(), out = (!first && SMALLW[lw] && w === lw) ? w : w.charAt(0).toUpperCase() + w.slice(1); first = false; return out; }); }
+  P.forEach(function(p){ ["name", "short", "label"].forEach(function(k){ if (p[k]) p[k] = tc(p[k]); }); });
+  /* ---------- draw the places ---------- */
+  var layer = el("g", {}), hits = {};
+  P.forEach(function(p){
+    if (p.hide) return;
+    var g = el("g", { "data-id": p.id }, layer);
+    var fill = p.k === "b" ? "var(--bldg)" : p.k === "p" ? "var(--pile-soft)" : p.k === "y" ? "var(--yard-soft)" : "var(--ground2)";
+    var stroke = p.k === "b" ? "var(--bldg)" : p.k === "p" ? "var(--pile)" : p.k === "y" ? "var(--yard)" : "var(--road-edge)";
+    var name = p.label || p.name;
+    if (p.c){
+      var rr = p.sz || (p.big ? 34 : p.small ? 12 : 20), cx = p.c[0], cy = Y(p.c[1]);
+      var PC = { "black-mulch": "#1c1a18", "brown-mulch": "#5e3b22", "red-mulch": "#93321f", "cedar-mulch": "#b98450", "playground-mulch": "#cfa067", "root-mulch": "#4b3020",
+        "topsoil": "#3e2c1f", "mushroom-soil": "#4c3b2c", "compost": "#382c21", "fill-dirt": "#8d6b47", "logs": "#6e4a2c", "wood-waste": "#a8773f", "grass": "#5f7d3a" }, pc = PC[p.id] || fill;
+      el("ellipse", { cx: cx + 2, cy: cy + rr * .55 + 1.5, rx: rr * 1.05, ry: rr * .22, fill: "#000", opacity: .45 }, g);
+      el("path", { "class": "pl", d: "M" + (cx - rr) + " " + (cy + rr * .55) + " Q" + cx + " " + (cy - rr * 1.25) + " " + (cx + rr) + " " + (cy + rr * .55) + " Z", fill: pc, stroke: "rgba(255,255,255,.22)", "stroke-width": 1 }, g);
+      el("path", { d: "M" + (cx - rr * .55) + " " + (cy + rr * .05) + " Q" + (cx - rr * .1) + " " + (cy - rr * .62) + " " + (cx + rr * .35) + " " + (cy - rr * .2), fill: "none", stroke: "rgba(255,255,255,.25)", "stroke-width": 1.4, "stroke-linecap": "round" }, g);
+      var lines = String(name).split(" ");
+      var tl = function(yy, s2){ var t0 = el("text", { x: cx, y: yy, "class": "lbl", "text-anchor": "middle" }, g); t0.textContent = s2; };
+      if (lines.length > 1 && !p.label && name.length > 9){ tl(cy + rr * .55 + 11, lines[0]); tl(cy + rr * .55 + 22, lines.slice(1).join(" ")); }
+      else tl(cy + rr * .55 + 11, name);
+    } else {
+      var r = p.k === "y" ? [p.r[0], Y(p.r[1]), p.r[2], Y(p.r[1] + p.r[3]) - Y(p.r[1])] : [p.r[0], Y(p.r[1] + p.r[3] / 2) - p.r[3] / 2, p.r[2], p.r[3]];
+      if ((p.k === "b" || p.k === "p") && !p.bare) el("rect", { x: r[0] + 3, y: r[1] + 3.5, width: r[2], height: r[3], rx: 3, fill: "#000", opacity: .4 }, g);
+      var base = el("rect", { "class": "pl", x: r[0], y: r[1], width: r[2], height: r[3], rx: p.k === "b" ? 3 : 5, fill: fill, stroke: stroke, "stroke-width": 1.2, "stroke-dasharray": p.k === "y" ? "3 3" : "none" }, g);
+      if (p.bare){ base.setAttribute("fill-opacity", 0); base.setAttribute("stroke", "none"); }
+      if (p.patio){   /* Kyle 11/16 10:06 PM: a flat patio display — fire pit top left with a half-moon seat wall behind it, an L staircase, a fireplace toward the back wall */
+        var X0 = r[0], Y0 = r[1], Wd = r[2], Ht = r[3];
+        el("rect", { x: X0 + 1, y: Y0 + 1, width: Wd - 2, height: Ht - 2, rx: 3, fill: "#9c8e76" }, g);
+        for (var gx = X0 + 6; gx < X0 + Wd - 1; gx += 6) el("path", { d: "M" + gx + " " + (Y0 + 2) + " v" + (Ht - 4), stroke: "#7f7260", "stroke-width": .4 }, g);
+        for (var gy = Y0 + 4, rw = 0; gy < Y0 + Ht - 1; gy += 4, rw++) el("path", { d: "M" + (X0 + 2) + " " + gy + " h" + (Wd - 4), stroke: "#8a7d68", "stroke-width": .35 }, g);
+        var fx = X0 + 13, fy = Y0 + 16;
+        el("path", { d: "M" + (fx - 11) + " " + (fy + 2) + " A11 11 0 0 1 " + (fx + 11) + " " + (fy + 2), fill: "none", stroke: "#cfc3a8", "stroke-width": 3.2, "stroke-linecap": "round" }, g);
+        el("circle", { cx: fx, cy: fy + 3, r: 5.5, fill: "#5a5248", stroke: "#cfc3a8", "stroke-width": 1.6 }, g); el("circle", { cx: fx, cy: fy + 3, r: 2.6, fill: "#e5762a" }, g);
+        var hx = X0 + Wd - 18, hy = Y0 + 4;
+        el("rect", { x: hx, y: hy, width: 14, height: 9, rx: 1, fill: "#8d8270", stroke: "#cfc3a8", "stroke-width": .8 }, g); el("rect", { x: hx + 4, y: hy + 3, width: 6, height: 6, fill: "#2a2522" }, g); el("rect", { x: hx + 5.5, y: hy + 5.5, width: 3, height: 3, fill: "#e5762a" }, g);
+        var sx = X0 + Wd - 6, sy = Y0 + Ht - 8;
+        for (var k2 = 0; k2 < 4; k2++){ el("rect", { x: sx - 4, y: sy - k2 * 4, width: 5, height: 3.2, fill: "#d8ccb2", stroke: "#7f7260", "stroke-width": .3 }, g); el("rect", { x: sx - 10 - k2 * 5, y: sy + 1 - 0, width: 4, height: 5, fill: "#d8ccb2", stroke: "#7f7260", "stroke-width": .3, opacity: k2 < 3 ? 1 : 0 }, g); }
+      } else if (p.screener){   /* top-down screening plant: tracks, a yellow hopper, the screen deck, and conveyors with little piles at their ends */
+        var sx = r[0], sy = r[1], sw = r[2], sh = r[3], cy2 = sy + sh / 2;
+        el("path", { d: "M" + (sx + 2) + " " + (cy2 + 3) + " l-9 9", stroke: "#2a2a2a", "stroke-width": 4.5, "stroke-linecap": "round" }, g); el("path", { d: "M" + (sx + 2) + " " + (cy2 + 3) + " l-9 9", stroke: "#6e6e6e", "stroke-width": 2.6, "stroke-dasharray": "1.2 1.2" }, g);
+        el("path", { d: "M" + (sx + sw * .45) + " " + (sy + sh - 2) + " l0 10", stroke: "#2a2a2a", "stroke-width": 4.5, "stroke-linecap": "round" }, g); el("path", { d: "M" + (sx + sw * .45) + " " + (sy + sh - 2) + " l0 10", stroke: "#6e6e6e", "stroke-width": 2.6, "stroke-dasharray": "1.2 1.2" }, g);
+        el("ellipse", { cx: sx - 9, cy: cy2 + 14, rx: 5, ry: 3, fill: "#5a3e2b" }, g); el("ellipse", { cx: sx + sw * .45, cy: sy + sh + 10, rx: 5, ry: 3, fill: "#7a5a3c" }, g);
+        el("rect", { x: sx + 6, y: sy + 3, width: sw - 10, height: 3, rx: 1, fill: "#1e1e1e" }, g); el("rect", { x: sx + 6, y: sy + sh - 6, width: sw - 10, height: 3, rx: 1, fill: "#1e1e1e" }, g);
+        el("rect", { x: sx + 4, y: sy + 5, width: sw * .58, height: sh - 10, rx: 1.5, fill: "#2f6fb5", stroke: "#0f2a4a", "stroke-width": .6 }, g);
+        el("rect", { x: sx + 7, y: sy + 7.5, width: sw * .58 - 6, height: sh - 15, fill: "#3d3a35" }, g);
+        for (var mx = sx + 9; mx < sx + 4 + sw * .58 - 3; mx += 3) el("path", { d: "M" + mx + " " + (sy + 7.5) + " v" + (sh - 15), stroke: "#7d7a72", "stroke-width": .5 }, g);
+        el("path", { d: "M" + (sx + 7) + " " + cy2 + " h" + (sw * .58 - 6), stroke: "#7d7a72", "stroke-width": .5 }, g);
+        var hx = sx + 4 + sw * .58 + 1;
+        el("path", { d: "M" + hx + " " + (sy + 4) + " L" + (sx + sw) + " " + (sy + 1) + " L" + (sx + sw) + " " + (sy + sh - 1) + " L" + hx + " " + (sy + sh - 4) + " Z", fill: "#3d86cf", stroke: "#0f2a4a", "stroke-width": .7 }, g);
+        el("path", { d: "M" + (hx + 3) + " " + (sy + 7) + " L" + (sx + sw - 3) + " " + (sy + 5) + " L" + (sx + sw - 3) + " " + (sy + sh - 5) + " L" + (hx + 3) + " " + (sy + sh - 7) + " Z", fill: "#3b2e22" }, g);
+        var st = el("text", { x: sx + sw / 2, y: sy - 3, "class": "lbl", "text-anchor": "middle" }, g); st.textContent = "Screener";
+      } else if (p.pstack){   /* a few empty wooden pallets */
+        for (var pk = 0; pk < 3; pk++){ var py0 = r[1] + 5 + pk * 11, px0 = r[0] + 3;
+          el("rect", { x: px0, y: py0, width: r[2] - 6, height: 8, fill: "#b58a55", stroke: "#6e5030", "stroke-width": .5 }, g);
+          for (var sl = 1; sl < 4; sl++) el("path", { d: "M" + px0 + " " + (py0 + sl * 2) + " h" + (r[2] - 6), stroke: "#6e5030", "stroke-width": .4 }, g); }
+      } else if (p.tanks){
+        [r[0] + r[3] / 2, r[0] + r[2] - r[3] / 2].forEach(function(tx){ var ty = r[1] + r[3] / 2 - 2, tr = r[3] / 2 - 2;
+          el("circle", { cx: tx + 1.5, cy: ty + 2, r: tr, fill: "#000", opacity: .45 }, g);
+          el("circle", { cx: tx, cy: ty, r: tr, fill: "#141414", stroke: "#5a5a5a", "stroke-width": 1 }, g);
+          el("circle", { cx: tx, cy: ty, r: tr * .62, fill: "none", stroke: "#3a3a3a", "stroke-width": .8 }, g);
+          el("circle", { cx: tx, cy: ty, r: 1.6, fill: "#555" }, g);
+          el("path", { d: "M" + (tx - tr * .7) + " " + (ty - tr * .45) + " a" + tr + " " + tr + " 0 0 1 " + (tr * .9) + " " + (-tr * .45), fill: "none", stroke: "#9a9a9a", "stroke-width": .8, opacity: .6 }, g); });
+        var tt = el("text", { x: r[0] + r[2] / 2, y: r[1] + r[3] + 6, "text-anchor": "middle", "font-size": 6.5, "font-weight": 700, fill: "#9fd0ee", "font-family": "Barlow Condensed, Arial Narrow, sans-serif" }, g); tt.textContent = "Water Tanks";
+      } else if (p.windrow1){
+        el("rect", { x: r[0] + 2, y: r[1] + 2, width: r[2], height: r[3], rx: 4.5, fill: "#000", opacity: .35 }, g);
+        el("rect", { x: r[0], y: r[1], width: r[2], height: r[3], rx: 4.5, fill: "#5b4330", stroke: "#7d6048", "stroke-width": .6 }, g);
+        var wcx = r[0] + r[2] / 2, wcy = r[1] + r[3] / 2, wt2 = el("text", { x: wcx, y: wcy + 2.2, "text-anchor": "middle", "font-size": 6.5, "font-weight": 700, fill: "#ffd400", "font-family": "Barlow Condensed, Arial Narrow, sans-serif", transform: "rotate(-90 " + wcx + " " + wcy + ")" }, g); wt2.textContent = "Windrow";
+      } else if (p.windrows){
+        for (var wi = 0; wi < 10; wi++){ var wx = r[0] + 2 + wi * (r[2] - 4) / 10;
+          el("rect", { x: wx + 1.5, y: r[1] + 2.5, width: 6.5, height: r[3] - 3, rx: 3.2, fill: "#000", opacity: .35 }, g);
+          el("rect", { x: wx, y: r[1] + 1, width: 6.5, height: r[3] - 3, rx: 3.2, fill: "#5b4330", stroke: "#7d6048", "stroke-width": .5 }, g);
+          el("path", { d: "M" + (wx + 3.25) + " " + (r[1] + 4) + " v" + (r[3] - 9), stroke: "#8a6c50", "stroke-width": .8, opacity: .7 }, g); }
+      } else if (p.trucks){
+        var tk = function(kind, x, y, nm){
+          var bodyFill = { box: "#eceae4", tri: "#8d939a", dump: "#d9822b", flat: "#7a5a3c" }[kind];
+          if (kind === "flat") el("rect", { x: x, y: y + 4, width: 24, height: 3, fill: bodyFill, stroke: "#3a2a1c", "stroke-width": .4 }, g);
+          else if (kind === "box") el("rect", { x: x, y: y - 2, width: 24, height: 9, rx: .8, fill: bodyFill, stroke: "#555", "stroke-width": .5 }, g);
+          else { el("path", { d: "M" + x + " " + y + " h24 l-2 7 h-20 z", fill: bodyFill, stroke: "#333", "stroke-width": .5 }, g); }
+          el("rect", { x: x + 25, y: y, width: 8, height: 7, rx: 1.2, fill: "#c0392b", stroke: "#5a1a14", "stroke-width": .4 }, g); el("rect", { x: x + 29, y: y + 1, width: 3, height: 2.6, fill: "#bfe0f2" }, g);
+          var axles = kind === "tri" ? [4, 9, 14, 29] : [5, 18, 29];
+          axles.forEach(function(ax){ el("circle", { cx: x + ax, cy: y + 8.5, r: 2, fill: "#1a1a1a", stroke: "#666", "stroke-width": .4 }, g); });
+          var lt = el("text", { x: x + 16, y: y + 16, "text-anchor": "middle", "font-size": 5.5, "font-weight": 700, fill: "#e8e4da", "font-family": "Barlow Condensed, Arial Narrow, sans-serif" }, g); lt.textContent = nm;
+        };
+        var tx0 = r[0] + 3, tx1 = r[0] + r[2] / 2 + 3, ty0 = r[1] + 7;
+        tk("box", tx0, ty0, "Box truck"); tk("tri", tx0, ty0 + 21, "Triaxle"); tk("dump", tx0, ty0 + 42, "Dump truck");
+        tk("dump", tx1, ty0, "Dump truck"); tk("flat", tx1, ty0 + 21, "Flatbed");
+      } else if (p.culdesac){   /* pallets around the outside of the ring road, a little paver island in the middle */
+        var ccx = r[0] + r[2] / 2, ccy = r[1] + r[3] / 2;
+        for (var an = 75; an <= 375; an += 22){ var ra = an * Math.PI / 180, qx = ccx + Math.cos(ra) * 37, qy = ccy - Math.sin(ra) * 37;
+          el("rect", { x: qx - 4.5, y: qy - 3.5, width: 9, height: 7, rx: 1, fill: "var(--pallet)", stroke: "var(--pallet-edge)", "stroke-width": .5 }, g); el("rect", { x: qx - 5, y: qy + 3.5, width: 10, height: 1.6, fill: "var(--pallet-wood)" }, g); }
+        el("circle", { cx: ccx, cy: ccy, r: 11, fill: "#3b3631", stroke: "var(--road-edge)", "stroke-width": 1 }, g);
+        [[-6, -5], [0.5, -5], [-6, 0.5], [0.5, 0.5]].forEach(function(o){ el("rect", { x: ccx + o[0], y: ccy + o[1], width: 5.5, height: 4.5, rx: .8, fill: "var(--pallet)", stroke: "var(--pallet-edge)", "stroke-width": .4 }, g); });
+      } else if (p.pond){
+        var pcx = r[0] + r[2] / 2, pcy = r[1] + r[3] / 2 - 3;
+        el("ellipse", { cx: pcx, cy: pcy, rx: r[2] / 2, ry: r[3] / 2 - 4, fill: "#2f6f9a", stroke: "#7fb6d6", "stroke-width": 1 }, g);
+        el("path", { d: "M" + (pcx - 12) + " " + (pcy - 3) + " q4 -2 8 0 t8 0 M" + (pcx - 6) + " " + (pcy + 4) + " q4 -2 8 0 t8 0", fill: "none", stroke: "#a9d3ea", "stroke-width": .8, opacity: .8 }, g);
+        var wt = el("text", { x: pcx, y: r[1] + r[3] + 4, "text-anchor": "middle", "font-size": 7, "font-weight": 700, fill: "#9fd0ee", "font-family": "Barlow Condensed, Arial Narrow, sans-serif" }, g); wt.textContent = "Water (for black mulch)";
+      } else if (p.hill){
+        var hb = r[1] + r[3];
+        el("path", { d: "M" + r[0] + " " + hb + " Q" + (r[0] + r[2] * .25) + " " + (r[1] - 6) + " " + (r[0] + r[2] * .5) + " " + (r[1] + 6) + " Q" + (r[0] + r[2] * .78) + " " + (r[1] - 8) + " " + (r[0] + r[2]) + " " + hb + " Z", fill: "#4d6b3c", stroke: "#78955f", "stroke-width": 1 }, g);
+        var ht = el("text", { x: r[0] + r[2] / 2, y: hb - 5, "class": "lbl sm", "text-anchor": "middle" }, g); ht.textContent = "HILL — no way through";
+      } else if (p.gate){
+        var gy = r[1] + r[3] / 2;
+        el("rect", { x: r[0], y: gy - 3, width: r[2] / 2 - 1, height: 6, fill: "#ffd21f", stroke: "#1a1a1a", "stroke-width": .6 }, g); el("rect", { x: r[0] + r[2] / 2 + 1, y: gy - 3, width: r[2] / 2 - 1, height: 6, fill: "#ffd21f", stroke: "#1a1a1a", "stroke-width": .6 }, g);
+        el("path", { d: "M" + r[0] + " " + (gy + 3) + " l" + (r[2] / 2 - 1) + " -6 M" + (r[0] + r[2] / 2 + 1) + " " + (gy - 3) + " l" + (r[2] / 2 - 1) + " 6", stroke: "#1a1a1a", "stroke-width": .7 }, g);
+        el("rect", { x: r[0] - 3, y: gy - 6, width: 3, height: 12, fill: "#ffd21f" }, g); el("rect", { x: r[0] + r[2], y: gy - 6, width: 3, height: 12, fill: "#ffd21f" }, g);
+      } else if (p.propane){
+        var px = r[0] + r[2] / 2, py = r[1] + 6;
+        el("rect", { x: px - 7, y: py - 3.2, width: 14, height: 6.4, rx: 3.2, fill: "#f2f2ee", stroke: "#888", "stroke-width": .5 }, g); el("rect", { x: px - 5, y: py + 3.2, width: 1.4, height: 2, fill: "#aaa" }, g); el("rect", { x: px + 3.6, y: py + 3.2, width: 1.4, height: 2, fill: "#aaa" }, g);
+        var pt = el("text", { x: px, y: r[1] + r[3] - 3, "text-anchor": "middle", "font-size": 5.5, "font-weight": 700, fill: "#f2f2ee", "font-family": "Barlow Condensed, Arial Narrow, sans-serif" }, g); pt.textContent = "Propane";
+      } else if (p.bins2){   /* back side bins on top, one wall down the middle, office side bins below */
+        var bx = r[0] + 3, bw = r[2] - 6, midY = r[1] + r[3] / 2, topC = ["#8d877c","#958f84","#8d877c","#958f84","#8d877c","#958f84","#8d877c"], botC = ["#958f84","#8d877c","#958f84","#8d877c","#958f84"];   /* plain bins — no colors that hint which bin holds what */
+        topC.forEach(function(c, k){ var w = bw / topC.length; el("rect", { x: bx + k * w + .6, y: r[1] + 3, width: w - 1.2, height: midY - r[1] - 4.5, fill: c, stroke: "#5a4a3a", "stroke-width": .4 }, g); });
+        botC.forEach(function(c, k){ var w = bw / botC.length; el("rect", { x: bx + k * w + .6, y: midY + 1.5, width: w - 1.2, height: r[1] + r[3] - midY - 4.5, fill: c, stroke: "#5a4a3a", "stroke-width": .4 }, g); });
+        el("rect", { x: r[0] + 1.5, y: midY - 1.2, width: r[2] - 3, height: 2.4, fill: "#cfc8b8" }, g);
+      } else if (p.truck){   /* Kyle 11/16: a flatbed truck, not pallets */
+        var bx2 = r[0] + r[2] / 2 - 26, by2 = r[1] + 8;
+        el("rect", { x: bx2, y: by2 + 2, width: 34, height: 9, rx: 1, fill: "#b9b2a4", stroke: "#3a3631", "stroke-width": .6 }, g);
+        el("path", { d: "M" + (bx2 + 35) + " " + (by2 + 11) + " v-10 h8 l6 5 v5 z", fill: "#d4462f", stroke: "#3a3631", "stroke-width": .6 }, g);
+        el("rect", { x: bx2 + 37, y: by2 + 2.5, width: 5, height: 3.5, fill: "#bfe0f2" }, g);
+        [bx2 + 6, bx2 + 14, bx2 + 28, bx2 + 44].forEach(function(wx){ el("circle", { cx: wx, cy: by2 + 12, r: 2.6, fill: "#1b1917", stroke: "#888", "stroke-width": .6 }, g); });
+        el("rect", { x: bx2 + 3, y: by2 - 2, width: 12, height: 4, fill: "#e4ded0", stroke: "#9b8f78", "stroke-width": .4 }, g); el("rect", { x: bx2 + 17, y: by2 - 2, width: 12, height: 4, fill: "#e4ded0", stroke: "#9b8f78", "stroke-width": .4 }, g);
+      } else if (p.k === "y"){   // little wrapped pallets spread through the yard, leaving room for its name
+        var nc = Math.max(1, Math.floor((r[2] - 4) / 15)), nr = Math.max(1, Math.floor((r[3] - 4) / 14)), lx = r[0] + r[2] / 2, ly = r[1] + r[3] / 2, vt = r[3] > r[2] * 2.2;
+        var slim = vt && r[2] < 60; if (slim) nc = 2;   /* Kyle 11/16: narrow yards like Techo-Bloc get a row of pallets down each side of the name */
+        for (var rr2 = 0; rr2 < nr; rr2++) for (var cc = 0; cc < nc; cc++){
+          var tx = slim ? (cc ? r[0] + r[2] - 13.5 : r[0] + 2.5) : r[0] + (r[2] - nc * 15) / 2 + cc * 15 + 2, ty = r[1] + (r[3] - nr * 14) / 2 + rr2 * 14 + 6;
+          if (!slim && (vt ? Math.abs(tx + 5 - lx) < 9 : Math.abs(ty - ly) < 9)) continue;
+          el("rect", { x: tx, y: ty - 4, width: 11, height: 8, rx: 1, fill: "var(--pallet)", stroke: "var(--pallet-edge)", "stroke-width": .5 }, g); el("rect", { x: tx - .5, y: ty + 4, width: 12, height: 2, fill: "var(--pallet-wood)" }, g);
+          el("path", { d: "M" + tx + " " + (ty - 1) + " h11 M" + tx + " " + (ty + 1.5) + " h11", stroke: "var(--pallet-edge)", "stroke-width": .4 }, g); } }
+      var vert = r[3] > r[2] * 2.2, tcx = r[0] + r[2] / 2, tcy = p.pstack ? r[1] + r[3] - 4 : p.trucks ? r[1] + r[3] - 5 : p.gate ? r[1] - 4 : p.culdesac ? r[1] - 6 : p.bins2 ? r[1] + r[3] + 9 : p.patio ? r[1] + r[3] + 11 : p.truck ? r[1] + r[3] - 7 : r[1] + r[3] / 2 + 4;
+      if (p.id === "hoop-house") for (var rb = 1; rb < 8; rb++) el("path", { d: "M" + (r[0] + rb * r[2] / 8) + " " + (r[1] + 3) + " v" + (r[3] - 6), stroke: "var(--bldg-ink)", "stroke-width": .8, opacity: .35 }, g);   // the hoop ribs
+      var t = el("text", { x: tcx, y: tcy + (p.big ? 3 : 0), "class": "lbl " + (p.k === "b" ? "bl" : (p.k === "x" ? "sm" : "")), "text-anchor": "middle" }, g); t.textContent = name; if (p.big) t.setAttribute("font-size", "16"); if (p.gate) t.setAttribute("style", "fill:#ffd21f;font-size:13px;font-weight:800"); if (p.culdesac){ t.textContent = ""; ["Belgard /", "EP Henry"].forEach(function(w, i){ var ts = document.createElementNS(NS, "tspan"); ts.setAttribute("x", tcx); ts.setAttribute("y", tcy - 11 + i * 11); ts.textContent = w; t.appendChild(ts); }); }   /* two short lines so it clears Truck Parking */
+      if (p.huge){ t.setAttribute("style", "font-size:26px;font-weight:800;letter-spacing:.06em"); t.setAttribute("y", tcy + 6); }
+      if (vert){ t.setAttribute("y", p.lblBelow ? r[1] + r[3] + 11 : r[1] - 5); }   /* Kyle 11/16: tall yards get their name flat, just above them — easier to read than sideways */
+    }
+  });
+  /* Kyle 11/16 8:15 PM: the container yard just behind the office — 5 containers standing side by side, and 4 lying across behind
+     them, around a little square you can drive into; diagonal from the fertilizer building, before Shipping / receiving */
+  (function(){ var g = svg.querySelector('[data-id="container-yard"]'); if (!g) return; var x0 = 151, y0 = Y(868), cols = ["#4f78a8", "#a8463b", "#a8463b", "#d9dad6", "#4f78a8"];
+    for (var i = 0; i < 5; i++){ el("rect", { x: x0 + i * 16, y: y0 + 44, width: 13, height: 38, rx: 1.5, fill: cols[i], stroke: "var(--ink)", "stroke-width": .6 }, g);
+      var n1 = el("text", { x: x0 + i * 16 + 6.5, y: y0 + 78, "text-anchor": "middle", "font-size": 8, "font-weight": 800, fill: i === 3 ? "#222" : "#fff", "font-family": "Barlow Condensed, Arial Narrow, sans-serif" }, g); n1.textContent = 5 - i;   /* Kyle 11/16: counted right to left */ }
+    for (var j = 0; j < 4; j++){ el("rect", { x: x0, y: y0 + 3 + j * 9, width: 77, height: 7, rx: 1.5, fill: j % 2 ? "#c2672f" : "#4f78a8", stroke: "var(--ink)", "stroke-width": .6 }, g);
+      var n2 = el("text", { x: x0 + 4, y: y0 + 9 + j * 9, "font-size": 7, "font-weight": 800, fill: "#fff", "font-family": "Barlow Condensed, Arial Narrow, sans-serif" }, g); n2.textContent = 9 - j;   /* counted bottom to top: 9 is the furthest back */ }
+    var t = el("text", { x: x0 + 38, y: y0 - 4, "class": "lbl", "text-anchor": "middle" }, g); t.textContent = "Container yard"; })();
+  (function(){ var bd = el("g", {}); el("rect", { x: 117, y: 1619, width: 18, height: 5, rx: 1, fill: "#d9dad6", stroke: "#1d1b18", "stroke-width": .6 }, bd);
+    for (var k = 1; k < 4; k++) el("path", { d: "M118 " + (1619 + k * 1.25) + " h16", stroke: "#8a8c88", "stroke-width": .4 }, bd);
+    var bt = el("text", { x: 126, y: 1631, "text-anchor": "middle", "font-size": 5.5, "font-weight": 700, fill: "#1d1b18", "font-family": "Barlow Condensed, Arial Narrow, sans-serif" }, bd); bt.textContent = "Bay Door"; })();
+  /* Kyle 11/16 10:04 PM: the mechanic shop is one bay door's worth at the corner of the fertilizer building nearest the office */
+  (function(){ var g = svg.querySelector('[data-id="fert"]'); if (!g) return; var bot = Y(803) + 93, x = 26, w = 40, h = 30;
+    el("rect", { x: x, y: bot - h, width: w, height: h, rx: 3, fill: "#5d7488", stroke: "var(--bldg-ink)", "stroke-width": .8 }, g);
+    el("rect", { x: x + w - 14, y: bot - 13, width: 11, height: 12, fill: "#d9dde0", stroke: "#333", "stroke-width": .5 }, g);
+    [["Mechanic", bot - h + 11], ["shop", bot - h + 20]].forEach(function(t){ var e = el("text", { x: x + 14, y: t[1], "text-anchor": "middle", "font-size": 7.5, "font-weight": 800, fill: "#fff", "font-family": "Barlow Condensed, Arial Narrow, sans-serif" }, g); e.textContent = t[0]; });
+    var lb = g.querySelector("text.lbl"); if (lb){ var cy = Y(803) - 14; lb.textContent = ""; lb.setAttribute("style", "font-size:9.5px");   /* flat, on two lines */
+      ["Fertilizer", "Building"].forEach(function(w, i){ var ts = document.createElementNS(NS, "tspan"); ts.setAttribute("x", 46); ts.setAttribute("y", cy - 2 + i * 11); ts.textContent = w; lb.appendChild(ts); }); } })();
+  // the gate, the sign, parking
+  el("rect", { x: 236, y: Y(1132), width: 18, height: 5, fill: "var(--ink)" }); text(262, 1140, "GATE", "sm", null, "start");
+  [text(140, 1124, "PARKING", "sm"), text(318, 1104, "PARKING", "sm")].forEach(function(t){ t.setAttribute("style", "fill:#ffd400;font-size:11px;font-weight:800;letter-spacing:.08em"); });   /* Kyle 11/16: parking in bright yellow */
+  for (var t2 = 0; t2 < 7; t2++){ var tx2 = 275 + t2 * 12, ty2 = Y(1128) + 2;   /* Kyle 11/16: the row of evergreens by the gate */
+    el("ellipse", { cx: tx2 + 1.5, cy: ty2 + .5, rx: 5, ry: 1.6, fill: "#000", opacity: .4 }); el("rect", { x: tx2 - 1, y: ty2 - 3, width: 2, height: 3.5, fill: "#6b4a2b" });
+    [[0, 6.5, 6], [-4, 5.2, 5], [-7.5, 3.8, 4]].forEach(function(k, j){ el("path", { d: "M" + (tx2 - k[1]) + " " + (ty2 - 2 + k[0]) + " L" + tx2 + " " + (ty2 - 2 + k[0] - k[2] - 2) + " L" + (tx2 + k[1]) + " " + (ty2 - 2 + k[0]) + " Z", fill: ["#2f5d34", "#3b7040", "#4a8550"][j] }); }); }
+  text(300, 8, "Back end of the property", "sm");
+  // N Tuckahoe Rd along the front (Kyle's Street View photos 11/16: the office faces the road; the driveway in is on the office's right, past the gate and the row of evergreens)
+  el("rect", { x: 0, y: Y(1150) + 6, width: 360, height: 34, fill: "var(--road)" });
+  el("path", { d: "M0 " + (Y(1150) + 23) + " L360 " + (Y(1150) + 23), stroke: "var(--card)", "stroke-width": 1.5, "stroke-dasharray": "10 8" });
+  var rd = el("text", { x: 20, y: Y(1150) + 19, "class": "lbl sm", "text-anchor": "start" }); rd.textContent = "1463 N TUCKAHOE RD";
+  /* Kyle 11/16 10:47 PM: tap a number to call the store */
+  var call = function(num, y, h){ var a = el("a", { href: "tel:+1" + num.replace(/\D/g, ""), target: "_top", "aria-label": "Call " + num, "class": "tel" }); el("rect", { x: 250, y: y - h + 2, width: 98, height: h + 2, fill: "#000", "fill-opacity": 0 }, a); return a; };
+  var ph = el("text", { x: 345, y: Y(1150) + 16, "class": "lbl sm", "text-anchor": "end", "text-decoration": "underline" }, call("856-226-3834", Y(1150) + 16, 11)); ph.textContent = "(856) 226-3834";   /* Kyle 11/16 10:53 PM: the Williamstown direct number on top, bigger */
+  var ph2 = el("text", { x: 345, y: Y(1150) + 25.5, "class": "lbl sm", "text-anchor": "end", "text-decoration": "underline" }, call("856-485-3802", Y(1150) + 25.5, 8)); ph2.setAttribute("style", "font-size:6.5px"); ph2.textContent = "(856) 485-3802";   /* the number Google shows, smaller underneath */
+  el("rect", { x: 236, y: Y(1132), width: 18, height: Y(1150) + 6 - Y(1132), fill: "var(--road)" });
+
+  /* ---------- route + dot ---------- */
+  var route = el("path", { id: "route", d: "" }), pulse = el("circle", { "class": "pulse", r: 16, fill: "var(--route)", opacity: 0 }), dot = el("circle", { "class": "youhere", r: 7, fill: "var(--route)", stroke: "#fff", "stroke-width": 2.5, opacity: 0 });
+  var here = el("g", { "class": "youhere" }); el("circle", { cx: 178, cy: Y(1092), r: 6, fill: "#e8261b", stroke: "#fff", "stroke-width": 2.5 }, here); text(178, 1075, "You are here", "", here, "middle").setAttribute("style", "fill:#ff3b2f;font-weight:800");   /* Kyle 11/16: "You are here" pops in red */
+
+  /* ---------- pan / zoom: v = centre (x, y) and s = map units per screen pixel ---------- */
+  var wrap = document.getElementById("wrap"), FULL = { x: 0, y: 0, w: 360, h: Y(1150) + 40 }, v = { x: 180, y: 900, s: 1 };
+  function size(){ var r = wrap.getBoundingClientRect(); return { w: Math.max(1, r.width), h: Math.max(1, r.height) }; }
+  function sMax(){ var z = size(); return Math.max(FULL.w / z.w, FULL.h / z.h) * 1.05; }
+  function apply(){
+    var z = size(); v.s = Math.min(sMax(), Math.max(0.18, v.s));
+    var w = z.w * v.s, h = z.h * v.s;
+    v.x = Math.min(FULL.x + FULL.w + w * 0.25, Math.max(FULL.x - w * 0.25, v.x)); v.y = Math.min(FULL.y + FULL.h + h * 0.1, Math.max(FULL.y - h * 0.1, v.y));
+    svg.setAttribute("viewBox", (v.x - w / 2) + " " + (v.y - h / 2) + " " + w + " " + h);
+    svg.style.setProperty("--k", Math.min(1.5, Math.max(1, 1 + (v.s - 1) * 0.4)).toFixed(2));
+    var f = Math.max(14, 17 * v.s);   // the destination name and "You are here" stay readable at any zoom
+    flag.setAttribute("font-size", f); flag.setAttribute("stroke-width", f * 0.22); youTxt.setAttribute("font-size", Math.max(11, 13 * v.s));
+    flagBox.setAttribute("transform", "translate(0 " + (-12 * v.s) + ")"); youDot.setAttribute("r", Math.max(6, 6 * v.s)); dot.setAttribute("r", Math.max(7, 7 * v.s)); pulse.setAttribute("r", Math.max(14, 16 * v.s));
+  }
+  function fit(b, pad){ var z = size(); pad = pad || 24; v.s = Math.max(b.w / Math.max(40, z.w - 2 * pad), b.h / Math.max(40, z.h - 2 * pad)); v.x = b.x + b.w / 2; v.y = b.y + b.h / 2; apply(); }
+  function zoomAt(k, px, py){ var r = wrap.getBoundingClientRect(), z = size(); var mx = v.x + (px - r.left - z.w / 2) * v.s, my = v.y + (py - r.top - z.h / 2) * v.s;
+    var ns = Math.min(sMax(), Math.max(0.18, v.s * k)); v.x = mx - (mx - v.x) * ns / v.s; v.y = my - (my - v.y) * ns / v.s; v.s = ns; apply(); }
+  var pts = {}, last = null;
+  wrap.addEventListener("pointerdown", function(e){ if (e.target.closest && e.target.closest(".zoom")) return; pts[e.pointerId] = { x: e.clientX, y: e.clientY }; try{ wrap.setPointerCapture(e.pointerId); }catch(_){} last = null; });
+  wrap.addEventListener("pointermove", function(e){
+    if (!pts[e.pointerId]) return; var ids = Object.keys(pts), p0 = pts[e.pointerId];
+    if (ids.length === 1){ v.x -= (e.clientX - p0.x) * v.s; v.y -= (e.clientY - p0.y) * v.s; moved += Math.abs(e.clientX - p0.x) + Math.abs(e.clientY - p0.y); pts[e.pointerId] = { x: e.clientX, y: e.clientY }; apply(); return; }
+    pts[e.pointerId] = { x: e.clientX, y: e.clientY }; moved += 99;
+    var a = pts[ids[0]], b = pts[ids[1]], d = Math.hypot(a.x - b.x, a.y - b.y);
+    if (last) zoomAt(last / d, (a.x + b.x) / 2, (a.y + b.y) / 2); last = d;
+  });
+  var moved = 0, KEEPVIEW = false;
+  /* Kyle 11/17 12:24 AM: tapping a place on the map draws its route. The drag-to-pan capture was swallowing those taps, so a tap is read here. */
+  function up(e){ var tap = e.type === "pointerup" && Object.keys(pts).length === 1 && pts[e.pointerId] && moved < 8 && !EDIT;
+    delete pts[e.pointerId]; last = null; setTimeout(function(){ if (!Object.keys(pts).length) moved = 0; }, 0);
+    if (!tap) return; var hitEl = document.elementFromPoint(e.clientX, e.clientY); if (!hitEl || !hitEl.closest) return;
+    var tel = hitEl.closest("a.tel"); if (tel){ tel.click(); return; }
+    var hg = hitEl.closest("[data-id].hit"); if (hg){ KEEPVIEW = true; try{ go(hg.getAttribute("data-id")); } finally { KEEPVIEW = false; } } }   /* Kyle 11/17 12:47 AM: a tap on the map keeps the map where it is */
+  wrap.addEventListener("click", function(e){ if (e.isTrusted && e.target.closest && e.target.closest("a.tel")) e.preventDefault(); }, true);   // the tap handler above dials; stop a second dial
+  wrap.addEventListener("pointerup", up); wrap.addEventListener("pointercancel", up);
+  wrap.addEventListener("wheel", function(e){ e.preventDefault(); zoomAt(Math.exp(e.deltaY * 0.0015), e.clientX, e.clientY); }, { passive: false });
+  document.getElementById("zIn").addEventListener("click", function(){ var r = wrap.getBoundingClientRect(); zoomAt(0.6, r.left + r.width / 2, r.top + r.height / 2); });
+  document.getElementById("zOut").addEventListener("click", function(){ var r = wrap.getBoundingClientRect(); zoomAt(1.6, r.left + r.width / 2, r.top + r.height / 2); });
+  document.getElementById("zAll").addEventListener("click", function(){ fit(FULL, 8); });
+  window.addEventListener("resize", apply);
+
+  /* the destination flag and "You are here" */
+  var flagBox = el("g", {}), flag = el("text", { "class": "flag", "text-anchor": "middle" }, flagBox);
+  var youDot = here.querySelector("circle"), youTxt = here.querySelector("text");
+
+  /* ---------- the buttons: 5 kinds → the places → the route ---------- */
+  var CCOL = ["#8a4f26", "#5a4030", "#6f8f22", "#6b6f78", "#9a6a1f", "#3f7048", "#2f5f8f"], CICO = ["\u{1FAB5}", "\u{1F7EB}", "\u{1F331}", "\u{1FAA8}", "\u{1F69B}", "\u{1F9F1}", "\u{1F4E6}"];
+  /* Kyle 11/16 10:01 PM: each place button gets its own colour (piles in their real colour, brands in theirs) */
+  var SUBCOL = { "black-mulch": "#6a625a", "brown-mulch": "#7a4a2a", "red-mulch": "#b0412a", "cedar-mulch": "#c88a4e", "playground-mulch": "#d8b06a", "root-mulch": "#5e3a24", "wood-chips": "#a8773f",
+    "topsoil": "#6b4a32", "mushroom-soil": "#8a6a50", "compost": "#4f6b3a", "fill-dirt": "#b08a5a", "bulk-front": "#8c96a0", "rr-1-3": "#7d8a96", "quarry-blend": "#a39272", "concrete-sand": "#c9b48a", "dga": "#8e8a80", "gray-34": "#6f7a84", "rr-34": "#9a8c78", "rr-15": "#87796a", "infield": "#b0704a", "more-bulk": "#a0846a", "bk-bar-sand": "#d8c59a", "bk-gray-38": "#8a929a", "bk-goose": "#e6e1d4", "bk-rice": "#b8a88a", "bk-rr-48": "#8f8170", "bk-millings": "#3b3836", "bk-wr-115": "#efece4", "bk-wr-34": "#e2ded3", "bk-yel-34": "#d6b25a", "bk-yel-38": "#e0c272", "bk-red-34": "#a5503c", "bk-red-38": "#b8644c", "bulk-mid": "#6f8fa8",
+    "paver-display": "#9a7bc0", "nicolock": "#e0b81e", "techo": "#2f7fbf", "ep-henry": "#c0392b", "containers-1-5": "#4f78a8", "containers-6-9": "#c2672f",
+    "hoop-house": "#3f6fb5", "grass": "#5f9a3a", "logs": "#7a5232", "wood-waste": "#b0803f", "receiving": "#8a7fb0", "fert": "#6a8fa8" };
+  var CATS = [
+    ["Mulch", ["black-mulch", "brown-mulch", "red-mulch", "cedar-mulch", "playground-mulch", "root-mulch", "wood-chips"]],
+    ["Soil", ["topsoil", "mushroom-soil", "compost"]],
+    ["Fertilizer & seed", ["fertilizer", "seed", "fert"]],
+    ["Stone & bulk", ["#Front bins — by the lot", "bulk-front", "concrete-sand", "dga", "gray-34", "infield", "quarry-blend", "|", "rr-34", "rr-15", "rr-1-3", "#Back bins — behind the office", "more-bulk", "bk-bar-sand", "bk-goose", "bk-gray-38", "bk-millings", "|", "bk-red-38", "bk-red-34", "bk-rice", "bk-rr-48", "|", "bk-wr-34", "bk-wr-115", "|", "bk-yel-38", "bk-yel-34", "#Other bins", "bulk-mid"]],   /* Kyle 11/16 11:43 PM: by family name, then size; families on their own row */
+    ["Dumping", ["fill-dirt", "wood-waste", "logs", "grass"]],   /* Kyle 11/16 11:34 PM: its own section, right under Stone & Bulk */
+    ["Pavers & walls", ["paver-display", "nicolock", "techo", "ep-henry"]],
+    ["Containers, straw & more", ["pallets", "containers-1-5", "containers-6-9", "hoop-house", "receiving"]]
+  ];
+  CATS.forEach(function(c){ c[0] = tc(c[0]); c[1] = c[1].map(function(id){ return id.charAt(0) === "#" ? "#" + tc(id.slice(1)) : id; }); });
+  var btns = document.getElementById("btns"), askText = document.getElementById("askText"), backB = document.getElementById("back"), routeBox = document.getElementById("routeBox"), cur = null;
+  function showCats(){
+    cur = null; btns.hidden = false; btns.className = "btns cats"; routeBox.hidden = true; backB.hidden = true; askText.textContent = "Where are you going?"; btns.textContent = "";
+    CATS.forEach(function(c, i){ var b = document.createElement("button"); b.type = "button"; b.style.setProperty("--c", CCOL[i]);
+      var ic = document.createElement("span"); ic.setAttribute("aria-hidden", "true"); ic.textContent = CICO[i]; b.appendChild(ic); b.appendChild(document.createTextNode(c[0]));
+      b.addEventListener("click", function(){ showCat(i); }); btns.appendChild(b); });
+  }
+  function showCat(i){
+    cur = i; btns.hidden = false; btns.className = "btns"; routeBox.hidden = true; backB.hidden = false; askText.textContent = CATS[i][0]; btns.textContent = "";
+    var brk = false; CATS[i][1].forEach(function(id){ if (id === "|"){ brk = true; return; } if (id.charAt(0) === "#"){ var h = document.createElement("div"); h.className = "hd"; h.textContent = id.slice(1); btns.appendChild(h); return; } var p = BY[id]; if (!p || !R[p.at || id]) return; var b = document.createElement("button"); b.type = "button"; b.textContent = p.short || p.name; b.style.setProperty("--c", SUBCOL[id] || CCOL[i]); b.addEventListener("click", function(){ go(id); }); if (brk){ b.style.gridColumnStart = "1"; brk = false; } btns.appendChild(b); });
+  }
+  backB.addEventListener("click", function(){ if (!routeBox.hidden && cur !== null){ clearRoute(); showCat(cur); } else { clearRoute(); showCats(); } });
+  Object.keys(R).forEach(function(id){ var g = svg.querySelector('[data-id="' + id + '"]'); if (!g || BY[id].start) return; g.classList.add("hit");
+  });
+
+  function clearRoute(){ pulse.classList.remove("on"); route.setAttribute("d", ""); dot.setAttribute("opacity", 0); pulse.setAttribute("opacity", 0); flag.textContent = ""; try{ history.replaceState(null, "", location.pathname + location.search); }catch(_){} }
+  function go(id){
+    var p = BY[id], q = R[p.at || id]; if (!p || !q) return;
+    if (cur === null) CATS.forEach(function(c, i){ if (c[1].indexOf(id) >= 0) cur = i; });
+    route.setAttribute("d", poly(q));
+    var end = q[q.length - 1], ex = end[0], ey = Y(end[1]);
+    dot.setAttribute("cx", ex); dot.setAttribute("cy", ey); dot.setAttribute("opacity", 1); pulse.setAttribute("cx", ex); pulse.setAttribute("cy", ey); pulse.setAttribute("opacity", 1); pulse.classList.add("on");
+    flag.textContent = p.short || p.name; flag.setAttribute("x", Math.min(300, Math.max(60, ex))); flag.setAttribute("y", ey - 14);
+    btns.hidden = true; routeBox.hidden = false; backB.hidden = false; askText.textContent = "Follow the red line";
+    document.getElementById("dest").textContent = p.name;
+    var st = document.getElementById("steps"), n = 0; st.textContent = "";
+    q.forEach(function(k){ if (k[2]){ var li = document.createElement("li"); li.dataset.n = ++n; li.textContent = k[2]; st.appendChild(li); } });
+    var li2 = document.createElement("li"); li2.dataset.n = "●"; if (p.note){ var ln = document.createElement("li"); ln.dataset.n = "i"; ln.textContent = p.note; setTimeout(function(){ document.getElementById("steps").appendChild(ln); }, 2); }
+    li2.textContent = (p.short || p.name) + (p.where ? " is " + p.where + (p.at === "fert" ? " (the red dot)." : " (the red dot). The map doesn’t show which bin — check the bin signs or ask at the office.") : " is at the red dot."); st.appendChild(li2);
+    if (p.has){ var li3 = document.createElement("li"); li3.dataset.n = "i"; li3.textContent = "In these bins: " + p.has + "."; st.appendChild(li3); }
+    var xs = q.map(function(k){ return k[0]; }), ys = q.map(function(k){ return Y(k[1]); });
+    var b = { x: Math.min.apply(null, xs) - 20, y: Math.min.apply(null, ys) - 50, w: 0, h: 0 }; b.w = Math.max.apply(null, xs) + 20 - b.x; b.h = Math.max.apply(null, ys) + 30 - b.y;
+    if (!KEEPVIEW) setTimeout(function(){ fit(b, 18); }, 0);
+    try{ if (location.hash !== "#" + id) history.replaceState(null, "", "#" + id); }catch(_){}
+  }
+  function fromHash(){ var h = (location.hash || "").replace(/^#/, ""); if (h === "edit"){ editOn(); return; } if (h && BY[h] && R[BY[h].at || h] && !BY[h].start) go(h); }
+  window.addEventListener("hashchange", fromHash);
+  showCats();
+  svg.querySelectorAll("text").forEach(function(t){ if (!t.closest(".youhere") && !t.querySelector("tspan")) t.textContent = tc(t.textContent); });
+  var FRONTV = { x: -16, y: Y(845), w: 382, h: Y(1150) + 40 - Y(845) };   // the front of the yard: office, gate, container yard, Nicolock
+  requestAnimationFrame(function(){ fit(FRONTV, 6); if (location.hash) fromHash(); });   // opens close in on the front; a #topsoil link opens with that route
+  (function(){ var h = document.getElementById("hint"), off = function(){ h.hidden = true; }; setTimeout(off, 9000);
+    wrap.addEventListener("pointerdown", off, { once: true }); wrap.addEventListener("wheel", off, { once: true }); document.getElementById("zAll").addEventListener("click", off); document.getElementById("panel").addEventListener("click", off); })();
+
+  /* ---------- Move mode (Kyle 11/16: "click and drag these piles … to their positioning myself"). Open the map with #edit.
+     Moves are kept on this phone/computer only; "Copy positions" gives the list to paste to Claude, who builds them into the map
+     for everyone. Customers never see this. ---------- */
+  /* Kyle's own placements (Move piles, 11/16 8:18 PM), built in for everyone */
+  var BAKED = {"bulk-mid":[18,-91],"more-bulk":[0,-105],"brown-mulch":[24,-100],"red-mulch":[12,-106],"techo":[-11,2],"fert":[-24,1],"pallets":[-22,-16],"shipping":[9,23],"receiving":[-1,-58],"bulk-front":[6,-58],"bagged":[-17,72],"cedar-mulch":[10,-28],"root-mulch":[-189,-649],"playground-mulch":[12,-85],"black-mulch":[2,-63],"nicolock":[-1,-58],"container-yard":[-1,12],"yard-right":[-3,-95],"ep-henry":[-125,25],"fill-dirt":[235,-68],"logs":[-57,-6],"wood-waste":[-56,6],"grass":[41,-64],"windrow":[19,-25],"topsoil":[-35,-38],"screener":[-18,-69],"mushroom-soil":[-33,-49],"compost":[-53,-96],"propane":[-13,34],"paver-display":[-8,27],"wood-chips":[-24,0],"back-gate":[2,6],"fuel":[-19,-39],"hill":[33,-4],"trucks":[-2,-16],"tanks":[16,41],"windrow-5":[93,-57],"windrow-4":[62,-57],"windrow-1":[-42,-57],"windrow-2":[-8,-58],"windrow-3":[27,-58]};
+  var OFF = JSON.parse(JSON.stringify(BAKED)); try{ var mine = JSON.parse(localStorage.getItem("ymap-off") || "null"); if (mine && mine.v === 2) OFF = mine.off; }catch(_){}
+  function offOf(id){ return OFF[id] || [0, 0]; }
+  function place(id){ var g = svg.querySelector('[data-id="' + id + '"]'), o = offOf(id); if (g) g.setAttribute("transform", "translate(" + o[0] + " " + o[1] + ")"); }
+  Object.keys(OFF).forEach(place);
+  try{ var bb = layer.getBBox(); FULL.x = Math.min(0, bb.x - 10); FULL.w = Math.max(360, bb.x + bb.width + 10) - FULL.x; FULL.y = Math.min(0, bb.y - 10); FULL.h = Y(1150) + 40 - FULL.y; }catch(_){}   // the map grows to fit what was moved out wide
+  /* Routes follow the roads (Kyle 11/16 8:41 PM: "it cuts across the field … that might be dangerous. It needs to go all the way to
+     where it needs to go and then over"). The line runs along the nearest road to the point level with the place, then makes one
+     square turn and stops in front of the pile or yard. The two container routes and the walk to the patio displays keep their own way. */
+  var OWN = { "black-mulch": 1, "pallets": 1, "containers-1-5": 1, "containers-6-9": 1, "paver-display": 1, "office": 1, "wood-chips": 1 };
+  function fp(q){ return [q[0], Y(q[1])]; }
+  var SFP = fp([178, 1092]), FRONT = fp([245, 1092]);
+  /* the routes follow the roads as drawn (RD), so bending a road moves the red line with it */
+  var MAINP = [SFP, FRONT].concat(RD.main.filter(function(q){ return q[1] < FRONT[1] - 1; }));
+  var RECP = [SFP, FRONT].concat(RD.rec);
+  var FILLP = [SFP, FRONT].concat(RD.main.filter(function(q){ return q[1] < FRONT[1] - 1 && q[1] >= RD.fill[0][1] - 0.5; })).concat(RD.fill);
+  var ROADP = [MAINP, RECP, FILLP];
+  function near(pl, P){ var best = null;
+    for (var i = 0; i < pl.length - 1; i++){ var A = pl[i], B = pl[i + 1], dx = B[0] - A[0], dy = B[1] - A[1], L = dx * dx + dy * dy, t = L ? ((P[0] - A[0]) * dx + (P[1] - A[1]) * dy) / L : 0; t = Math.max(0, Math.min(1, t));
+      var X = [A[0] + t * dx, A[1] + t * dy], d = Math.hypot(P[0] - X[0], P[1] - X[1]); if (!best || d < best.d) best = { d: d, i: i, X: X }; }
+    return best; }
+  var P_ALL = P;
+  function shapeOf(id){ var p = BY[id], o = offOf(id); if (!p) return null;
+    if (p.c) return { c: [p.c[0] + o[0], Y(p.c[1]) + o[1]], r: p.sz || (p.big ? 34 : p.small ? 12 : 20) };
+    if (!p.r) return null;
+    var r = p.k === "y" ? [p.r[0], Y(p.r[1]), p.r[2], Y(p.r[1] + p.r[3]) - Y(p.r[1])] : [p.r[0], Y(p.r[1] + p.r[3] / 2) - p.r[3] / 2, p.r[2], p.r[3]];
+    return { box: [r[0] + o[0], r[1] + o[1], r[2], r[3]] }; }
+  function roadRoute(id){
+    var sh = shapeOf(id); if (!sh) return null;
+    var P = sh.c || [sh.box[0] + sh.box[2] / 2, sh.box[1] + sh.box[3] / 2], best = null, bp = null;
+    ROADP.forEach(function(pl){ var n = near(pl, P); if (n && (!best || n.d < best.d - 1)){ best = n; bp = pl; } });
+    var pts = bp.slice(0, best.i + 1).concat([best.X]), X = best.X, D;
+    if (sh.c){ var ux = X[0] - P[0], uy = X[1] - P[1], ul = Math.hypot(ux, uy) || 1; D = [P[0] + ux / ul * (sh.r + 7), P[1] + uy / ul * (sh.r * .6 + 7)]; }
+    else { var bx = sh.box, qx = Math.max(bx[0], Math.min(bx[0] + bx[2], X[0])), qy = Math.max(bx[1], Math.min(bx[1] + bx[3], X[1])), vx = X[0] - qx, vy = X[1] - qy, vl = Math.hypot(vx, vy) || 1; D = vl > 1 ? [qx + vx / vl * 7, qy + vy / vl * 7] : [qx, qy]; }
+    if (Math.hypot(D[0] - X[0], D[1] - X[1]) > 2) pts.push(D);
+    var prev = pts[Math.max(0, best.i)], tx = X[0] - prev[0], ty = X[1] - prev[1], hx = D[0] - X[0], hy = D[1] - X[1], side = tx * hy - ty * hx;
+    var k = best.i, steps = ["Leave the parking lot by the office and turn left onto the Main Road."];
+    /* Kyle 11/17 12:10 AM: on the Main Road, say what you drive past and which pile it is on which side —
+       "go past the Nicolock yard, cedar mulch is the first pile on your right, red mulch across from it" */
+    var GATEY = Y(300);
+    if (bp === MAINP && X[1] > GATEY){
+      var side2 = side < 0 ? "left" : "right", MX = X[0], P0 = BY[id];
+      var marks = [["container-yard", "the shipping containers"], ["nicolock", "the Nicolock yard"]].map(function(m){ var sh2 = shapeOf(m[0]); if (!sh2 || !sh2.box || m[0] === id) return null;
+        var bx2 = sh2.box; return { id: m[0], name: m[1], top: bx2[1], bot: bx2[1] + bx2[3], side: bx2[0] + bx2[2] / 2 < MX ? "left" : "right" }; }).filter(function(m){ return m && m.top > X[1] + 4 && m.bot < FRONT[1]; });
+      if (marks.length){ var ml = marks.map(function(m){ return m.name + " on your " + m.side; }); steps.push("Drive up the Main Road past " + (ml.length > 1 ? ml.slice(0, -1).join(", ") + " and " + ml[ml.length - 1] : ml[0]) + "."); }
+      else steps.push("Drive up the Main Road.");
+      if (P0 && P0.c && !P0.at){
+        var all = P_ALL.filter(function(q){ return q.c && !q.hide && q.k === "p"; }).map(function(q){ var sh3 = shapeOf(q.id); return { id: q.id, name: tc(q.name), x: sh3.c[0], y: sh3.c[1] }; }).filter(function(q){ return q.y > GATEY && q.y < FRONT[1]; });
+        var me = all.filter(function(q){ return q.id === id; })[0];
+        if (me){ var before = all.filter(function(q){ return q.id !== id && (q.x < MX) === (me.x < MX) && q.y > me.y + 4; }).length;
+          var ORD = ["first", "second", "third", "fourth", "fifth", "sixth"], after = marks.filter(function(m){ return m.side === side2; }).sort(function(a, b){ return a.top - b.top; })[0];
+          var line = me.name + " is the " + (ORD[before] || "next") + " pile on your " + side2 + (after && before === 0 ? ", right after " + after.name : "") + ".";
+          var across = all.filter(function(q){ return q.id !== id && (q.x < MX) !== (me.x < MX) && Math.abs(q.y - me.y) < 45; }).sort(function(a, b){ return Math.abs(a.y - me.y) - Math.abs(b.y - me.y); })[0];
+          if (across) line += " " + across.name + " is across from it.";
+          steps.push(line); return { pts: pts, end: D, steps: steps, turn: null }; } }
+      return { pts: pts, end: D, steps: steps, turn: Math.hypot(hx, hy) > 12 ? (side < 0 ? "left" : "right") : null };
+    }
+    if (bp === RECP){ if (k >= 2) steps.push("At the container yard, turn left toward Shipping / receiving."); if (k >= 5) steps.push("Follow the road up the left side, past the fertilizer building and Techo-Bloc."); if (k >= 14) steps.push("At the top of that road, curve back around to the left, behind the fuel shed and truck parking."); }
+    else { if (k >= 2) steps.push("Stay on the Main Road past the mulch piles to the wood chip wall."); if (k >= 5) steps.push("Go through the back gate, right after the wood chip wall.");
+      if (bp === FILLP && k >= 7) steps.push("Just past the back gate, turn right and follow that road."); else if (bp === MAINP && k >= 6) steps.push("Stay on the road toward the back end of the property."); }
+    return { pts: pts, end: D, steps: steps, turn: Math.hypot(hx, hy) > 12 ? (side < 0 ? "left" : "right") : null };
+  }
+  var baseGo = go; go = function(id){ baseGo(id); if (OWN[id]) return; var rr3 = roadRoute((BY[id] && BY[id].at) || id); if (!rr3) return;
+    var ex = rr3.end[0], ey = rr3.end[1], P = BY[id];
+    route.setAttribute("d", rr3.pts.map(function(q, i){ return (i ? "L" : "M") + q[0] + " " + q[1]; }).join(" "));
+    dot.setAttribute("cx", ex); dot.setAttribute("cy", ey); pulse.setAttribute("cx", ex); pulse.setAttribute("cy", ey); flag.setAttribute("x", Math.min(FULL.x + FULL.w - 50, Math.max(FULL.x + 50, ex))); flag.setAttribute("y", ey - 14);
+    var st = document.getElementById("steps"), lastLi = st.lastChild, n = 0; st.textContent = "";
+    var add = function(t){ var li = document.createElement("li"); li.dataset.n = ++n; li.textContent = t; st.appendChild(li); };
+    rr3.steps.forEach(add); if (rr3.turn) add("When it’s level with you, turn " + rr3.turn + " — " + (P.at === "fert" ? "the Fertilizer Building is" : P.at ? "the bulk bins are" : (P.short || P.name) + " is") + " right there.");
+    if (lastLi) st.appendChild(lastLi);
+    var xs = rr3.pts.map(function(q){ return q[0]; }), ys = rr3.pts.map(function(q){ return q[1]; }), b = { x: Math.min.apply(null, xs) - 30, y: Math.min.apply(null, ys) - 50 };
+    b.w = Math.max.apply(null, xs) + 30 - b.x; b.h = Math.max.apply(null, ys) + 30 - b.y; if (!KEEPVIEW) setTimeout(function(){ fit(b, 18); }, 1);
+  };
+  var EDIT = false, drag = null;
+  function editOn(){
+    EDIT = true; clearRoute(); btns.hidden = true; routeBox.hidden = false; backB.hidden = true; askText.textContent = "Move mode";
+    document.getElementById("dest").textContent = "Drag piles and buildings into place";
+    var st = document.getElementById("steps"); st.textContent = "";
+    var bar = document.createElement("div"); bar.className = "btns"; bar.style.marginTop = "6px";
+    [["Copy positions", copyPos], ["Undo my moves", function(){ OFF = JSON.parse(JSON.stringify(BAKED)); try{ localStorage.removeItem("ymap-off"); }catch(_){} svg.querySelectorAll("[data-id]").forEach(function(g){ g.removeAttribute("transform"); }); Object.keys(OFF).forEach(place); RD = JSON.parse(JSON.stringify(RD_BAKED)); try{ localStorage.removeItem("ymap-roads"); }catch(_){} drawRoads(); drawHandles(); }],
+     ["Done", function(){ EDIT = false; drawHandles(); try{ history.replaceState(null, "", location.pathname + location.search); }catch(_){} bar.remove(); outBox.hidden = true; showCats(); }]].forEach(function(x){
+      var b = document.createElement("button"); b.type = "button"; b.textContent = x[0]; b.addEventListener("click", x[1]); bar.appendChild(b); });
+    routeBox.appendChild(bar); routeBox.appendChild(outBox);
+    var li = document.createElement("li"); li.dataset.n = "i"; li.textContent = "Drag a pile, yard or building with one finger. Pinch or use + − to zoom. When you\u2019re done, tap Copy positions and paste it to Claude, who puts the moves on the map for everyone."; st.appendChild(li);
+    var li2 = document.createElement("li"); li2.dataset.n = "i"; li2.textContent = "Roads and open areas: drag a white dot to bend them. Drag a small hollow dot (between two white dots) to add a new bend. Double-tap a white dot to remove it."; st.appendChild(li2);
+    drawHandles();
+  }
+  /* road handles — white dots on every bend, hollow dots between them to add a bend */
+  var handleG = null, hdrag = null, ROADKEYS = ["main", "rec", "cross", "front", "fill", "ring"]   /* Kyle 11/16 11:12 PM: no lane to the office */, CLOSED = { lotA: 1, lotB: 1 };
+  function saveRoads(){ try{ localStorage.setItem("ymap-roads", JSON.stringify({ v: 2, rd: RD })); }catch(_){} }
+  function drawHandles(){
+    if (handleG) handleG.remove(); if (!EDIT) { handleG = null; return; }
+    handleG = el("g", { "class": "handles" });
+    ROADKEYS.forEach(function(k){ var pts = RD[k], n = pts.length;
+      if (k !== "ring") for (var i = 0; i < (CLOSED[k] ? n : n - 1); i++){ var q1 = pts[i], q2 = pts[(i + 1) % n];
+        var m = el("circle", { cx: (q1[0] + q2[0]) / 2, cy: (q1[1] + q2[1]) / 2, r: 3.2, fill: "rgba(0,0,0,.35)", stroke: "#fff", "stroke-width": 1, style: "cursor:copy" }, handleG);
+        (function(k, i){ m.addEventListener("pointerdown", function(e){ e.stopPropagation(); e.preventDefault(); var q1 = RD[k][i], q2 = RD[k][(i + 1) % RD[k].length];
+          RD[k].splice(i + 1, 0, [(q1[0] + q2[0]) / 2, (q1[1] + q2[1]) / 2]); hdrag = { k: k, i: i + 1, x: e.clientX, y: e.clientY }; drawRoads(); drawHandles(); }); })(k, i); }
+      pts.forEach(function(q, i){
+        var h = el("circle", { cx: q[0], cy: q[1], r: 4.5, fill: k === "ring" ? "#ffd400" : "#fff", stroke: "#1d1b18", "stroke-width": 1.2, style: "cursor:move" }, handleG);
+        h.addEventListener("pointerdown", function(e){ e.stopPropagation(); e.preventDefault(); hdrag = { k: k, i: i, x: e.clientX, y: e.clientY }; });
+        h.addEventListener("dblclick", function(e){ e.stopPropagation(); var min = CLOSED[k] ? 3 : 2; if (k === "ring" || RD[k].length <= min) return; RD[k].splice(i, 1); saveRoads(); drawRoads(); drawHandles(); });
+      }); });
+  }
+  window.addEventListener("pointermove", function(e){ if (!hdrag) return; var q = RD[hdrag.k][hdrag.i]; q[0] = Math.round((q[0] + (e.clientX - hdrag.x) * v.s) * 10) / 10; q[1] = Math.round((q[1] + (e.clientY - hdrag.y) * v.s) * 10) / 10; hdrag.x = e.clientX; hdrag.y = e.clientY; drawRoads(); drawHandles(); });
+  window.addEventListener("pointerup", function(){ if (!hdrag) return; hdrag = null; saveRoads(); });
+  var outBox = document.createElement("textarea"); outBox.hidden = true; outBox.rows = 3; outBox.readOnly = true; outBox.style.cssText = "width:100%;box-sizing:border-box;font-size:12px;margin-top:6px";
+  function copyPos(){
+    var out = {}; Object.keys(OFF).forEach(function(k){ var o = OFF[k]; if (Math.abs(o[0]) + Math.abs(o[1]) > 0.5) out[k] = [Math.round(o[0]), Math.round(o[1])]; });
+    if (JSON.stringify(RD) !== JSON.stringify(RD_BAKED)) out._roads = RD;
+    var txt = "Yard map moves: " + JSON.stringify(out); outBox.value = txt; outBox.hidden = false; outBox.select();
+    try{ navigator.clipboard.writeText(txt).then(function(){ askText.textContent = "Copied — paste it to Claude"; }, function(){ askText.textContent = "Copy the text below"; }); }catch(_){ askText.textContent = "Copy the text below"; }
+  }
+  svg.querySelectorAll("[data-id]").forEach(function(g){
+    g.addEventListener("pointerdown", function(e){ if (!EDIT) return; e.stopPropagation(); e.preventDefault(); drag = { id: g.dataset.id, x: e.clientX, y: e.clientY }; g.style.opacity = ".7"; });
+  });
+  window.addEventListener("pointermove", function(e){ if (!drag) return; var o = offOf(drag.id).slice(); o[0] += (e.clientX - drag.x) * v.s; o[1] += (e.clientY - drag.y) * v.s; OFF[drag.id] = o; drag.x = e.clientX; drag.y = e.clientY; place(drag.id); });
+  window.addEventListener("pointerup", function(){ if (!drag) return; var g = svg.querySelector('[data-id="' + drag.id + '"]'); if (g) g.style.opacity = ""; drag = null; try{ localStorage.setItem("ymap-off", JSON.stringify({ v: 2, off: OFF })); }catch(_){} });
+
+  /* the "Move piles" button shows only for Kyle (the owner) or people he gives edit access; customers never see it */
+  document.getElementById("moveBtn").addEventListener("click", function(){ if (!EDIT) editOn(); });
+  try{ if (window.claude && claude.use) claude.use("user").then(function(u){ if (!u) return;
+    Promise.all([Promise.resolve(u.isOwner()).catch(function(){ return false; }), Promise.resolve(u.canEdit()).catch(function(){ return false; })]).then(function(r){ if (r[0] || r[1]) document.getElementById("moveBtn").hidden = false; }); }); }catch(_){}
+
+  /* ---------- QR code for the front table ---------- */
+  var qr = document.getElementById("qr");
+  document.getElementById("qrOpen").addEventListener("click", function(){
+    qr.hidden = false; var box = document.getElementById("qrImg");
+    if (!box.firstChild){ try{ var c = qrcode(0, "M"); c.addData("https://claude.ai/artifact/5X79UEZr4kpw66n4fDFemN"); c.make(); box.innerHTML = c.createSvgTag({ cellSize: 6, margin: 2, scalable: true }); }
+      catch(e){ box.textContent = "The QR code didn't load here. In Chrome on a computer, open the shared link and use Share → Create QR code."; } }
+  });
+  document.getElementById("qrClose").addEventListener("click", function(){ qr.hidden = true; });
+})();
+</script>
+</body></html>
