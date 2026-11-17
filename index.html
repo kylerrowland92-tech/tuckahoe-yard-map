@@ -86,7 +86,8 @@ body{background:var(--card);color:var(--ink);font-family:var(--f-body);font-size
 /* Kyle 11/16 10:30 PM: the important names in yellow */
 .lbl:not(.sm){fill:#ffd400}
 .lbl.sm{fill:#74bdf2}
-.tel{cursor:pointer}.tel text{text-decoration:underline}   /* Kyle 11/16 10:32 PM: the less important names in blue */
+.tel{cursor:pointer}
+.top .langsw{margin-left:auto}.top .langsw + button{margin-left:6px}.tel text{text-decoration:underline}   /* Kyle 11/16 10:32 PM: the less important names in blue */
 .lbl.bl{stroke:#1d1b18;stroke-width:2.6px;paint-order:stroke}
 /* names grow a little as you zoom out, so they stay readable on a whole-yard view (--k is set with the zoom) */
 .lbl:not(.sm):not(.bl){font-size:calc(11px * var(--k, 1));stroke-width:calc(3px * var(--k, 1))}
@@ -726,5 +727,123 @@ body{background:var(--card);color:var(--ink);font-family:var(--f-body);font-size
   });
   document.getElementById("qrClose").addEventListener("click", function(){ qr.hidden = true; });
 })();
+</script>
+<script>
+  /* Kyle 11/17 8:42 AM: an English / Español switch. English stays the source; in Español mode the text on the page is swapped as it appears. */
+  (function(){
+    var LANG = "en"; try{ LANG = localStorage.getItem("ymap-lang") === "es" ? "es" : "en"; }catch(_){}
+    if (/[?&]lang=es\b/.test(location.search)) LANG = "es";
+    var EX = {
+      "where are you going?": "¿A dónde va?", "‹ back": "‹ Atrás", "follow the red line": "Siga la línea roja",
+      "pinch, or tap all, to see the whole yard": "Pellizque o toque Todo para ver todo el patio", "all": "Todo",
+      "you are here": "Usted está aquí", "parking": "ESTACIONAMIENTO", "tuckahoe yard map": "Mapa del patio de Tuckahoe",
+      "peach country · tap where you're going": "Peach Country · toque a dónde va", "gate": "PORTÓN", "back gate": "Portón trasero",
+      "main road": "Camino principal", "back end of the property": "Fondo de la propiedad", "bay door": "Puerta de carga",
+      "hill — no way through": "COLINA — sin paso", "wood chip wall — no way through": "MURO DE ASTILLAS — sin paso",
+      "mulch": "Mantillo", "soil": "Tierra", "fertilizer & seed": "Fertilizante y semilla", "stone & bulk": "Piedra y a granel",
+      "dumping": "Descarga", "pavers & walls": "Adoquines y muros", "containers, straw & more": "Contenedores, paja y más",
+      "black": "Negro", "brown": "Café", "red": "Rojo", "cedar": "Cedro", "playground": "Para parques",
+      "front bins — by the lot": "Compartimentos del frente — junto al estacionamiento", "back bins — behind the office": "Compartimentos de atrás — detrás de la oficina", "other bins": "Otros compartimentos",
+      "bulk": "A granel", "box truck": "Camión de caja", "dump truck": "Camión de volteo", "flatbed": "Plataforma", "triaxle": "Triaxle",
+      "leave the parking lot by the office and turn left onto the main road.": "Salga del estacionamiento junto a la oficina y gire a la izquierda en el Camino principal.",
+      "at the container yard, turn left toward shipping / receiving.": "En el patio de contenedores, gire a la izquierda hacia Envíos / Recepción.",
+      "follow the road up the left side, past the fertilizer building and techo-bloc.": "Siga el camino por el lado izquierdo, pasando el Edificio de fertilizantes y Techo-Bloc.",
+      "at the top of that road, curve back around to the left, behind the fuel shed and truck parking.": "Al final de ese camino, dé la vuelta a la izquierda, detrás de la Caseta de combustible y el Estacionamiento de camiones.",
+      "stay on the main road past the mulch piles to the wood chip wall.": "Siga por el Camino principal, pasando los montones de mantillo, hasta el muro de astillas.",
+      "go through the back gate, right after the wood chip wall.": "Pase por el portón trasero, justo después del muro de astillas.",
+      "just past the back gate, turn right and follow that road.": "Justo después del portón trasero, gire a la derecha y siga ese camino.",
+      "stay on the road toward the back end of the property.": "Siga el camino hacia el fondo de la propiedad.",
+      "drive up the main road.": "Suba por el Camino principal.",
+      "at the back gate, turn left — dump along the wood chip wall.": "En el portón trasero, gire a la izquierda: descargue a lo largo del muro de astillas.",
+      "containers 1–5 face the open space between the office and the containers.": "Los contenedores 1–5 dan al espacio abierto entre la oficina y los contenedores.",
+      "containers 6–9 are on your left, across from the fertilizer building.": "Los contenedores 6–9 están a su izquierda, frente al Edificio de fertilizantes.",
+      "cut back toward the office.": "Regrese hacia la oficina.",
+      "drive up the main road past the shipping containers and the nicolock yard.": "Suba por el Camino principal, pasando los contenedores y el patio de Nicolock.",
+      "drop pallets at the pallet pile on your left.": "Deje las tarimas en el montón de tarimas a su izquierda.",
+      "follow it to the corner, then keep straight toward the fertilizer building.": "Sígalo hasta la esquina y continúe derecho hacia el Edificio de fertilizantes.",
+      "follow the curved road up the left side, past techo-bloc and the fuel station.": "Siga el camino curvo por el lado izquierdo, pasando Techo-Bloc y la estación de combustible.",
+      "follow the curved road up the left side.": "Siga el camino curvo por el lado izquierdo.",
+      "go past the back bulk materials bins to the next row.": "Pase los compartimentos de materiales a granel de atrás hasta la siguiente fila.",
+      "go past the container yard, then turn left toward shipping / receiving and the fertilizer building.": "Pase el patio de contenedores y gire a la izquierda hacia Envíos / Recepción y el Edificio de fertilizantes.",
+      "just above the container yard, turn left.": "Justo después del patio de contenedores, gire a la izquierda.",
+      "just past red mulch, turn left between red mulch and playground mulch, toward black mulch.": "Justo después del Mantillo rojo, gire a la izquierda entre el Mantillo rojo y el Mantillo para parques, hacia el Mantillo negro.",
+      "keep going to the bins at the far side of the yard.": "Siga hasta los compartimentos al otro lado del patio.",
+      "keep going up the main road.": "Siga subiendo por el Camino principal.",
+      "right behind the office, turn left.": "Justo detrás de la oficina, gire a la izquierda.",
+      "stay on the main road past the mulch piles, all the way to the back gate.": "Siga por el Camino principal, pasando los montones de mantillo, hasta el portón trasero.",
+      "stay on the road all the way to the back end.": "Siga el camino hasta el fondo.",
+      "stay on the road to the back end of the property.": "Siga el camino hasta el fondo de la propiedad.",
+      "the fertilizer building is the long building on the left; the mechanic shop is its end door nearest the office.": "El Edificio de fertilizantes es el edificio largo a la izquierda; el taller mecánico es la puerta del extremo más cercana a la oficina.",
+      "turn left along the fertilizer building.": "Gire a la izquierda junto al Edificio de fertilizantes.",
+      "turn right just past the back gate.": "Gire a la derecha justo después del portón trasero.",
+      "walk past the left end of the office — the patio and wall displays are on the lawn.": "Camine por el extremo izquierdo de la oficina: las exhibiciones de patios y muros están en el césped.",
+      "you're here — the counter is in the office.": "Usted está aquí: el mostrador está en la oficina.",
+      "on the way out: loop around behind brown mulch and between the bulk bins, or go all the way around across shipping / receiving to the main road.": "Para salir: dé la vuelta detrás del Mantillo café y entre los compartimentos a granel, o rodee por Envíos / Recepción hasta el Camino principal."
+    };
+    var PH = [
+      ["Bulk Materials \\(Front\\)", "Materiales a granel (frente)"], ["Bulk Materials \\(Back\\)", "Materiales a granel (atrás)"], ["Bulk Materials", "Materiales a granel"],
+      ["Belgard / EP Henry Yard", "Patio de Belgard / EP Henry"], ["Techo-Bloc Yard", "Patio de Techo-Bloc"], ["Nicolock Yard", "Patio de Nicolock"],
+      ["Black Mulch", "Mantillo negro"], ["Brown Mulch", "Mantillo café"], ["Red Mulch", "Mantillo rojo"], ["Cedar Mulch", "Mantillo de cedro"], ["Playground Mulch", "Mantillo para parques"], ["Root Mulch", "Mantillo de raíz"],
+      ["Mushroom Soil", "Tierra de hongos"], ["Topsoil", "Tierra vegetal"], ["Compost", "Composta"], ["Fill Dirt", "Tierra de relleno"],
+      ["Wood Chips", "Astillas de madera"], ["Wood Waste", "Desechos de madera"], ["Logs", "Troncos"], ["Grass Dumping", "Descarga de pasto"], ["Grass Dump", "Descarga de pasto"],
+      ["Straw & Peat Moss \\(Hoop House\\)", "Paja y turba (invernadero)"], ["Straw & Peat Moss", "Paja y turba"], ["Hoop House", "Invernadero"],
+      ["Pallet Returns", "Devolución de tarimas"], ["Pallets", "Tarimas"], ["Fertilizer Building & Mechanic Shop", "Edificio de fertilizantes y taller mecánico"], ["Fertilizer Building", "Edificio de fertilizantes"], ["Mechanic Shop", "Taller mecánico"],
+      ["Shipping / Receiving Yard", "Patio de envíos / recepción"], ["Shipping / Receiving", "Envíos / Recepción"], ["Shipping", "Envíos"], ["Container Yard", "Patio de contenedores"], ["Containers", "Contenedores"],
+      ["Middle Bins", "Compartimentos del medio"], ["Bulk Bins \\(Middle\\)", "Compartimentos del medio"], ["Display Patios", "Patios de exhibición"], ["Paver Display", "Exhibición de adoquines"],
+      ["Truck Parking", "Estacionamiento de camiones"], ["Fuel Shed", "Caseta de combustible"], ["Propane Fuel Tank Station", "Estación de tanques de propano"], ["Propane", "Propano"],
+      ["Water Tanks", "Tanques de agua"], ["Water \\(For Black Mulch\\)", "Agua (para mantillo negro)"], ["Water Source \\(For Making Black Mulch\\)", "Fuente de agua (para mantillo negro)"],
+      ["Windrows", "Hileras de composta"], ["Windrow", "Hilera de composta"], ["Dirt Screener", "Cribadora de tierra"], ["Screener", "Cribadora"], ["Office", "Oficina"],
+      ["River Rock", "Piedra de río"], ["Gray Stone", "Piedra gris"], ["Concrete Sand", "Arena para concreto"], ["Quarry Blend", "Mezcla de cantera"], ["Infield Mix", "Mezcla para infield"],
+      ["White Bar Sand", "Arena bar blanca"], ["Bar Sand", "Arena bar"], ["Rice Gravel", "Grava de arroz"], ["Millings", "Asfalto fresado"], ["White Round", "Piedra blanca redonda"],
+      ["Goose Egg", "Huevo de ganso"], ["Red Crushed", "Piedra roja triturada"], ["\\(Driveway Stone\\)", "(piedra para entrada)"], ["Yellow", "Piedra amarilla"],
+      ["Fertilizer", "Fertilizante"], ["Seed", "Semilla"], ["Front Bulk Bins", "compartimentos a granel del frente"], ["Back Bulk Bins", "compartimentos a granel de atrás"]
+    ].map(function(p){ return [new RegExp("(^|[^A-Za-zÀ-ÿ])" + p[0] + "(?![A-Za-zÀ-ÿ])", "gi"), p[1]]; });
+    function nm(s){ PH.forEach(function(p){ s = s.replace(p[0], function(m, pre){ return pre + p[1]; }); }); return s; }
+    var ORD = { first: "primer", second: "segundo", third: "tercer", fourth: "cuarto", fifth: "quinto", sixth: "sexto", next: "siguiente" }, SIDE = { left: "izquierda", right: "derecha" };
+    function side(s){ return s.replace(/ on your left/g, " a su izquierda").replace(/ on your right/g, " a su derecha").replace(/the shipping containers/g, "los contenedores").replace(/the Nicolock yard/g, "el patio de Nicolock").replace(/, /g, ", ").replace(/ and /g, " y "); }
+    function tr(s){
+      var k = s.toLowerCase().replace(/\s+/g, " ").trim(); if (EX[k]) return EX[k];
+      var m;
+      if ((m = s.match(/^Drive up the Main Road past (.+)\.$/))) return "Suba por el Camino principal, pasando " + side(m[1]) + ".";
+      if ((m = s.match(/^When it’s level with you, turn (left|right) — (.+) (is|are) right there\.$/))) return "Cuando quede a su altura, gire a la " + SIDE[m[1]] + ": " + (m[2] === "the bulk bins" ? "los compartimentos a granel están" : (m[2] === "the Fertilizer Building" ? "el Edificio de fertilizantes está" : nm(m[2]) + " está")) + " ahí mismo.";
+      if ((m = s.match(/^(.+) is the (\w+) pile on your (left|right)(?:, right after (.+?))?\.(?: (.+) is across from it\.)?$/))) return nm(m[1]) + " es el " + (ORD[m[2]] || m[2]) + " montón a su " + SIDE[m[3]] + (m[4] ? ", justo después de " + side(m[4]) : "").replace("después de el ", "después del ") + "." + (m[5] ? " Enfrente está el " + nm(m[5]) + "." : "");
+      if ((m = s.match(/^(.+) is in the (front|back) bulk bins \(the red dot\)\. The map doesn’t show which bin — check the bin signs or ask at the office\.$/))) return nm(m[1]) + " está en los compartimentos a granel " + (m[2] === "front" ? "del frente" : "de atrás") + " (el punto rojo). El mapa no indica cuál compartimento: revise los letreros o pregunte en la oficina.";
+      if ((m = s.match(/^(.+) is in the Fertilizer Building \(the red dot\)\.$/))) return nm(m[1]) + " está en el Edificio de fertilizantes (el punto rojo).";
+      if ((m = s.match(/^(.+) is at the red dot\.$/))) return (EX[m[1].toLowerCase()] || nm(m[1])) + " está en el punto rojo.";
+      if ((m = s.match(/^In these bins: (.+)\.$/))) return "En estos compartimentos: " + nm(m[1]) + ".";
+      return nm(s);
+    }
+    var done = new Set(), busy = false, mo = null;
+    function doText(n){ var cur = n.nodeValue, st = n.__i18n; if (st && cur === st.es) return; var t = cur.trim(); if (!t || /^[\d\s()+\-–.·:,\/]*$/.test(t)) return;
+      var es = tr(t); if (es === t) return; n.__i18n = { en: cur, es: cur.replace(t, es) }; n.nodeValue = n.__i18n.es; done.add(n); }
+    function doSvgText(el){ var ts = el.querySelectorAll("tspan"); if (!ts.length) return; var st = el.__i18n, cur = Array.prototype.map.call(ts, function(t){ return t.textContent; });
+      if (st && cur.join("\n") === st.es.join("\n")) return; var joined = cur.join(" ").replace(/\s+/g, " ").trim(), es = tr(joined); if (es === joined) return;
+      var w = es.split(" "), lines = [], per = Math.ceil(w.length / ts.length); for (var i = 0; i < ts.length; i++) lines.push(w.slice(i * per, (i + 1) * per).join(" "));
+      el.__i18n = { en: cur, es: lines }; ts.forEach(function(t, i){ t.textContent = lines[i]; }); done.add(el); }
+    /* pile names are drawn as two lines (two <text> at the same x): translate them together so Spanish word order comes out right */
+    function enOf(n){ return n.__i18n ? n.__i18n.en : n.nodeValue; }
+    function doPairs(r){ Array.prototype.forEach.call(r.querySelectorAll("text"), function(a){ var b = a.nextElementSibling;
+      if (!b || b.tagName !== "text" || a.querySelector("tspan") || b.querySelector("tspan") || a.getAttribute("x") !== b.getAttribute("x")) return;
+      var na = a.firstChild, nb = b.firstChild; if (!na || !nb || na.nodeType !== 3 || nb.nodeType !== 3) return;
+      if (na.__i18n && nb.__i18n && na.nodeValue === na.__i18n.es && nb.nodeValue === nb.__i18n.es) return;
+      var en = (enOf(na) + " " + enOf(nb)).replace(/\s+/g, " ").trim(), es = tr(en); if (es === en) return;
+      var w = es.split(" "), l1 = w[0], l2 = w.slice(1).join(" ") || " ";
+      na.__i18n = { en: enOf(na), es: l1 }; nb.__i18n = { en: enOf(nb), es: l2 }; na.nodeValue = l1; nb.nodeValue = l2; done.add(na); done.add(nb); }); }
+    function walk(root){ if (LANG !== "es" || busy) return; busy = true;
+      try{ var r = root.nodeType === 3 ? root.parentNode : root; if (!r || !r.querySelectorAll) return;
+        if (r.closest && r.closest(".langsw")) return;
+        Array.prototype.forEach.call(r.querySelectorAll ? r.querySelectorAll("text") : [], doSvgText); if (r.tagName === "text") doSvgText(r); doPairs(r.tagName === "text" && r.parentNode ? r.parentNode : r);
+        var it = document.createTreeWalker(r, NodeFilter.SHOW_TEXT, { acceptNode: function(n){ var p = n.parentNode; if (!p || /^(SCRIPT|STYLE|TSPAN)$/.test(p.tagName) || (p.closest && p.closest(".langsw, textarea"))) return NodeFilter.FILTER_REJECT; return NodeFilter.FILTER_ACCEPT; } }), n;
+        while ((n = it.nextNode())) doText(n);
+      } finally { busy = false; if (mo) mo.takeRecords(); } }   // drop the changes this pass made itself
+    function restore(){ done.forEach(function(x){ if (!x.isConnected || !x.__i18n) return; if (x.nodeType === 3) x.nodeValue = x.__i18n.en; else x.querySelectorAll("tspan").forEach(function(t, i){ t.textContent = x.__i18n.en[i]; }); x.__i18n = null; }); done.clear(); }
+    mo = new MutationObserver(function(ms){ if (LANG !== "es" || busy) return; ms.forEach(function(m){ if (m.type === "characterData") walk(m.target); else m.addedNodes.forEach(function(n){ walk(n); }); }); });
+    mo.observe(document.body, { childList: true, subtree: true, characterData: true });
+    var btn = document.createElement("button"); btn.type = "button"; btn.className = "langsw";
+    function label(){ btn.textContent = LANG === "es" ? "English" : "Español"; btn.setAttribute("aria-label", LANG === "es" ? "Switch to English" : "Cambiar a español"); document.documentElement.lang = LANG; }
+    btn.addEventListener("click", function(){ LANG = LANG === "es" ? "en" : "es"; try{ localStorage.setItem("ymap-lang", LANG); }catch(_){} label(); if (LANG === "es") walk(document.body); else restore(); });
+    var top = document.querySelector(".top"), qr = document.getElementById("qrOpen"); if (top) top.insertBefore(btn, qr || null);
+    label(); if (LANG === "es") walk(document.body);
+  })();
 </script>
 </body></html>
