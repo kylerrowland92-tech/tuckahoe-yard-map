@@ -48,6 +48,8 @@ svg.photo .lbl{stroke:#111;stroke-width:3.4px}
 svg:not(.photo) .photolayer,svg:not(.photo) .phcredit{display:none}
 .binlbl{font-family:var(--f-sign);font-weight:700;font-size:4.6px;fill:#fff;paint-order:stroke;stroke:#111;stroke-width:1.3px;text-anchor:middle}
 .bindot{fill:#ffd400;stroke:#111;stroke-width:.5}
+svg:not(.near) .binlbl,svg:not(.near) .bindot{display:none}
+svg.near [data-id="more-bulk"] text.lbl,svg.near [data-id="bulk-front"] text.lbl{display:none}
 .zoom button.ph{font-size:9px;font-weight:800;letter-spacing:-.02em}
 body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .expired{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:20px;background:#1d1b18;color:#f1eadc;text-align:center;font-family:var(--f-body)}
@@ -188,7 +190,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
     var c = [m2px(x0, y0, z), m2px(x1, y0, z), m2px(x0, y1, z), m2px(x1, y1, z)], xs = c.map(function(q){ return q[0]; }), ys = c.map(function(q){ return q[1]; });
     var tx0 = Math.floor(Math.min.apply(null, xs) / 256), tx1 = Math.floor(Math.max.apply(null, xs) / 256), ty0 = Math.floor(Math.min.apply(null, ys) / 256), ty1 = Math.floor(Math.max.apply(null, ys) / 256), g = photoLevel(z), n = 0;
     for (var ty = ty0; ty <= ty1; ty++) for (var tx = tx0; tx <= tx1; tx++){ var key = z + "/" + ty + "/" + tx; if (photoTiles[key]) continue; if (++n > max) return;
-      var im = el("image", { x: tx * 256 - .4, y: ty * 256 - .4, width: 256.8, height: 256.8, preserveAspectRatio: "none" }, g);
+      var im = el("image", { x: tx * 256 - 1, y: ty * 256 - 1, width: 258, height: 258, preserveAspectRatio: "none" }, g);
       im.addEventListener("load", function(){ photoOK++; }); im.addEventListener("error", function(){ photoFails++; if (photoFails > 6 && !photoOK) photoOff(true); });
       im.setAttribute("href", NJT + key); photoTiles[key] = im; } }
   photoArea(-160, -120, 900, 1180, 18, 160);
@@ -537,6 +539,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
     v.x = Math.min(FULL.x + FULL.w + w * 0.25, Math.max(FULL.x - w * 0.25, v.x)); v.y = Math.min(FULL.y + FULL.h + h * 0.1, Math.max(FULL.y - h * 0.1, v.y));
     svg.setAttribute("viewBox", (v.x - w / 2) + " " + (v.y - h / 2) + " " + w + " " + h);
     svg.style.setProperty("--k", Math.min(1.5, Math.max(1, 1 + (v.s - 1) * 0.4)).toFixed(2));
+    svg.classList.toggle("near", v.s < 0.5);   /* v68: bin names show when you zoom in close */
     if (v.s < 0.75 && svg.classList.contains("photo")) photoArea(v.x - w / 2, v.y - h / 2, v.x + w / 2, v.y + h / 2, 19, 60);   /* v68: sharper photo up close */
     var f = Math.max(14, 17 * v.s);   // the destination name and "You are here" stay readable at any zoom
     flag.setAttribute("font-size", f); flag.setAttribute("stroke-width", f * 0.22); youTxt.setAttribute("font-size", Math.max(11, 13 * v.s));
