@@ -50,6 +50,9 @@ svg.photo [data-id] .pl{fill-opacity:0 !important;stroke-opacity:0 !important}
 svg.photo [data-id="back-gate"] > *{display:inline}
 svg.photo [data-id="trucks"] text:not(.lbl),svg.photo [data-id="windrow-1"] text,svg.photo [data-id^="windrow"] text{display:none}
 svg.photo .lbl.bl{fill:#ffd400}
+/* v75: only destinations stay yellow; the rest light blue and softer */
+.lbl.minor{fill:#a8d8f5 !important;fill-opacity:.82}
+svg.photo .lbl.minor{stroke-opacity:.75}
 /* v74: the drawn piles over the photo, fading out as you zoom in (--pop set in apply) */
 svg.photo .pshape{display:inline !important;opacity:var(--pop, 1)}
 svg.photo .pshape .pl{fill-opacity:1 !important;stroke-opacity:1 !important}
@@ -640,6 +643,10 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
     ["Pavers & walls", ["paver-display", "nicolock", "techo", "ep-henry"]],
     ["Containers, straw & more", ["pallets", "containers-1-5", "containers-6-9", "hoop-house", "receiving"]]
   ];
+  (function(){ var DEST = { "office": 1, "container-yard": 1 };
+    CATS.forEach(function(c){ c[1].forEach(function(id){ if (/^[#|]/.test(id) || !BY[id]) return; DEST[id] = 1; if (BY[id].at) DEST[BY[id].at] = 1; if (/^containers-/.test(id)) DEST["container-yard"] = 1; }); });
+    svg.querySelectorAll("text.lbl").forEach(function(t){ if (t.closest(".youhere") || t.closest("a") || /TUCKAHOE RD/.test(t.textContent)) return; var g = t.closest("[data-id]");
+      if (g && DEST[g.dataset.id]){ t.classList.remove("sm"); t.classList.add("dest"); } else t.classList.add("minor"); }); })();
   CATS.forEach(function(c){ c[0] = tc(c[0]); c[1] = c[1].map(function(id){ return id.charAt(0) === "#" ? "#" + tc(id.slice(1)) : id; }); });
   var btns = document.getElementById("btns"), askText = document.getElementById("askText"), backB = document.getElementById("back"), routeBox = document.getElementById("routeBox"), cur = null;
   function showCats(){
