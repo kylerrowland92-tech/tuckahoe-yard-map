@@ -745,7 +745,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
     var ME = mi >= ks.length ? X : N[seq[mi]], onMain = mi >= ks.length;
     var marks = [["container-yard", "the shipping containers"], ["nicolock", "the Nicolock yard"]].map(function(m){ var s2 = shapeOf(m[0]); if (!s2 || !s2.box || m[0] === id) return null;
       var b2 = s2.box, mxr = b2[1] + b2[3] / 2, rx = null; RD.main.forEach(function(q, j){ if (j && RD.main[j - 1][1] >= mxr && q[1] <= mxr){ var A = RD.main[j - 1], f = (A[1] - mxr) / ((A[1] - q[1]) || 1); rx = A[0] + (q[0] - A[0]) * f; } });
-      return { id: m[0], name: m[1], top: b2[1], bot: b2[1] + b2[3], side: b2[0] + b2[2] / 2 < (rx == null ? FRONT[0] : rx) ? "left" : "right" }; }).filter(function(m){ return m && m.top > ME[1] + 4 && m.bot < FRONT[1] + 2; });
+      return { id: m[0], name: m[1], top: b2[1], bot: b2[1] + b2[3], side: m[0] === "container-yard" ? "left" : m[0] === "nicolock" ? "right" : b2[0] + b2[2] / 2 < (rx == null ? FRONT[0] : rx) ? "left" : "right" };   /* v72: the containers sit right on the road edge; Kyle: containers on the left, Nicolock on the right */ }).filter(function(m){ return m && m.top > ME[1] + 4 && m.bot < FRONT[1] + 2; });
     if (onMain && ME[1] > GATEY && P0 && P0.c && !P0.at){
       var side2 = side < 0 ? "left" : "right", MX = X[0];
       var all = P_ALL.filter(function(q){ return q.c && !q.hide && q.k === "p"; }).map(function(q){ var s3 = shapeOf(q.id); return { id: q.id, name: tc(q.name), x: s3.c[0], y: s3.c[1] }; }).filter(function(q){ return q.y < FRONT[1] && q.y > GATEY && Math.abs(q.x - MX) < 90; });
