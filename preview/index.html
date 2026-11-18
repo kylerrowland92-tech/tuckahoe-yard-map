@@ -569,20 +569,20 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   function size(){ var r = wrap.getBoundingClientRect(); return { w: Math.max(1, r.width), h: Math.max(1, r.height) }; }
   function sMax(){ var z = size(); return Math.max(FULL.w / z.w, FULL.h / z.h) * 1.05; }
   function apply(){
-    var z = size(); v.s = Math.min(sMax(), Math.max(0.18, v.s));
+    var z = size(); v.s = Math.min(sMax(), Math.max(svg.classList.contains("photo") ? 0.07 : 0.18, v.s));
     var w = z.w * v.s, h = z.h * v.s;
     v.x = Math.min(FULL.x + FULL.w + w * 0.25, Math.max(FULL.x - w * 0.25, v.x)); v.y = Math.min(FULL.y + FULL.h + h * 0.1, Math.max(FULL.y - h * 0.1, v.y));
     svg.setAttribute("viewBox", (v.x - w / 2) + " " + (v.y - h / 2) + " " + w + " " + h);
     svg.style.setProperty("--k", Math.min(2.6, Math.max(1, 1 + (v.s - 1) * 0.7)).toFixed(2));
     svg.classList.toggle("near", v.s < 0.5);   /* v68: bin names show when you zoom in close */
-    if (svg.classList.contains("photo") && v.s < 1.6) photoArea(v.x - w / 2, v.y - h / 2, v.x + w / 2, v.y + h / 2, v.s < 0.35 && GSESS ? 20 : v.s < 0.75 ? 19 : 18, 60);   /* v69: only the tiles you look at, sharper as you zoom in (keeps Google inside its free tiles) */
+    if (svg.classList.contains("photo") && v.s < 1.6) photoArea(v.x - w / 2, v.y - h / 2, v.x + w / 2, v.y + h / 2, v.s < 0.16 && GSESS ? 21 : v.s < 0.35 && GSESS ? 20 : v.s < 0.75 ? 19 : 18, 60);   /* v69: only the tiles you look at, sharper as you zoom in (keeps Google inside its free tiles) */
     var f = Math.max(14, 17 * v.s);   // the destination name and "You are here" stay readable at any zoom
     flag.setAttribute("font-size", f); flag.setAttribute("stroke-width", f * 0.22); youTxt.setAttribute("font-size", Math.max(11, 13 * v.s));
     flagBox.setAttribute("transform", "translate(0 " + (-12 * v.s) + ")"); youDot.setAttribute("r", Math.max(6, 6 * v.s)); dot.setAttribute("r", Math.max(7, 7 * v.s)); pulse.setAttribute("r", Math.max(14, 16 * v.s));
   }
   function fit(b, pad){ var z = size(); pad = pad || 24; v.s = Math.max(b.w / Math.max(40, z.w - 2 * pad), b.h / Math.max(40, z.h - 2 * pad)); v.x = b.x + b.w / 2; v.y = b.y + b.h / 2; apply(); }
   function zoomAt(k, px, py){ var r = wrap.getBoundingClientRect(), z = size(); var mx = v.x + (px - r.left - z.w / 2) * v.s, my = v.y + (py - r.top - z.h / 2) * v.s;
-    var ns = Math.min(sMax(), Math.max(0.18, v.s * k)); v.x = mx - (mx - v.x) * ns / v.s; v.y = my - (my - v.y) * ns / v.s; v.s = ns; apply(); }
+    var ns = Math.min(sMax(), Math.max(svg.classList.contains("photo") ? 0.07 : 0.18, v.s * k)); v.x = mx - (mx - v.x) * ns / v.s; v.y = my - (my - v.y) * ns / v.s; v.s = ns; apply(); }
   var pts = {}, last = null;
   wrap.addEventListener("pointerdown", function(e){ if (e.target.closest && e.target.closest(".zoom")) return; pts[e.pointerId] = { x: e.clientX, y: e.clientY }; try{ wrap.setPointerCapture(e.pointerId); }catch(_){} last = null; });
   wrap.addEventListener("pointermove", function(e){
