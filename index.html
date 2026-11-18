@@ -41,6 +41,7 @@ body{background:var(--card);color:var(--ink);font-family:var(--f-body);font-size
 svg.photo .draw{display:none}
 /* v70 (Kyle 6:58 PM): the roads in blue over the photo */
 svg.photo .roadg{display:none}
+svg.photo:not(.editing) #route{display:none}   /* v77: just the red dot on the satellite, no dotted line */
 svg.photo.editing .roadg{display:inline}
 svg.photo .roadg .re{display:none}
 svg.photo .roadg .rr{stroke:#2f8fe6;stroke-opacity:.6;stroke-width:9}
@@ -53,6 +54,7 @@ svg.photo .lbl.bl{fill:#ffd400}
 /* v75: only destinations stay yellow; the rest light blue and softer */
 .lbl.minor{fill:#a8d8f5 !important;fill-opacity:.82}
 svg.photo .lbl.minor{stroke-opacity:.75}
+[data-id="paver-display"] text.lbl{fill:#fff !important}   /* v77 (Kyle): Paver Display in white like the mechanic shop */
 /* v74: the drawn piles over the photo, fading out as you zoom in (--pop set in apply) */
 svg.photo .pshape{display:inline !important;opacity:var(--pop, 1)}
 svg.photo .pshape .pl{fill-opacity:1 !important;stroke-opacity:1 !important}
@@ -60,7 +62,7 @@ svg.photo .lbl{stroke:#111;stroke-width:3.4px}
 svg:not(.photo) .photolayer,svg:not(.photo) .phcredit{display:none}
 .binlead{stroke:#ffd400;stroke-width:.4;fill:none}
 svg:not(.near) .binlead{display:none}
-.binlbl{font-family:var(--f-sign);font-weight:700;font-size:4.4px;fill:#fff;paint-order:stroke;stroke:#111;stroke-width:1.3px;text-anchor:middle}
+.binlbl{font-family:var(--f-sign);font-weight:700;font-size:calc(11px * var(--k, 1));stroke-width:calc(3px * var(--k, 1)) !important;fill:#fff;paint-order:stroke;stroke:#111;stroke-width:1.3px;text-anchor:middle}
 .bindot{fill:#ffd400;stroke:#111;stroke-width:.5}
 svg:not(.near) .binlbl,svg:not(.near) .bindot{display:none}
 svg.near [data-id="more-bulk"] text.lbl,svg.near [data-id="bulk-front"] text.lbl{display:none}
@@ -181,7 +183,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   function T(ax, ay){ return [ay, AW - ax]; }
   function TB(ax0, ay0, ax1, ay1){ return [ay0, AW - ax1, ay1 - ay0, ax1 - ax0]; }
   function TL(list){ return list.map(function(q){ return T(q[0], q[1]); }); }
-  var HERE = T(52, 262), PARK = [[262, 1021], T(66, 362)];
+  var HERE = [276, 980], PARK = [[262, 1021], T(66, 362)];   /* v77 (Kyle 8:48 PM): "you are here" up in the lot in front of the office */
   function poly(pts){ return pts.map(function(q, i){ return (i ? "L" : "M") + q[0] + " " + Y(q[1]); }).join(" "); }
   function text(x, y, s, cls, parent, anchor){ var t = el("text", { x: x, y: Y(y), "class": "lbl " + (cls || ""), "text-anchor": anchor || "middle" }, parent); t.textContent = s; return t; }
 
@@ -263,7 +265,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   /* Kyle 11/16 8:19 PM: the wood chip wall runs all the way across to the left — you can't get through it — with a hill on the other side */
   /* Kyle 11/16 10:15 PM: the hill is across the road from the wall — the back gate is the only way through. The hill is now its own piece (id "hill") so it can be moved. */
   /* Kyle 11/16 11:18 PM: Main Road was hard to read sideways — now flat road signs sitting on the road */
-  var roadSigns = el("g", {});
+  var roadSigns = el("g", { "class": "draw" });   /* v77: no Main Road signs on the satellite */
   function drawRoadSigns(){ roadSigns.textContent = ""; [470, 395].forEach(function(yy){ var x = RD.main[0][0]; RD.main.forEach(function(q, j){ if (j && RD.main[j - 1][1] >= yy && q[1] <= yy){ var A = RD.main[j - 1]; x = A[0] + (q[0] - A[0]) * (A[1] - yy) / ((A[1] - q[1]) || 1); } });
     el("rect", { x: x - 25, y: yy - 7, width: 50, height: 13, rx: 3, fill: "#1d1b18", stroke: "#74bdf2", "stroke-width": .8 }, roadSigns);
     var t = el("text", { x: x, y: yy + 3, "text-anchor": "middle", "font-size": 9, "font-weight": 700, fill: "#9fd0ee", "font-family": "Barlow Condensed, Arial Narrow, sans-serif", "letter-spacing": ".04em" }, roadSigns); t.textContent = "Main Road"; }); }
@@ -304,7 +306,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
     { id: "seed", name: "Seed — Fertilizer Building", short: "Seed", hide: true, at: "fert", where: "in the Fertilizer Building" },
     { id: "containers-1-5", name: "Containers 1–5 (standing, behind the office)", short: "Containers 1–5", hide: true },
     { id: "containers-6-9", name: "Containers 6–9 (lying across, by the fertilizer building)", short: "Containers 6–9", hide: true },
-    { id: "shipping", name: "Shipping", k: "x", r: [150, 944, 34, 12], label: "Shipping" },
+    { id: "shipping", name: "Shipping", k: "x", r: [150, 944, 34, 12], label: "Shipping", hide: true },   /* v77 (Kyle): not needed */
     { id: "pallets", name: "Pallet returns", short: "Pallet returns", k: "x", r: TB(124, 204, 160, 228), label: "Pallets", pstack: true },   /* Kyle 11/16 11:17 PM: a place people drive to — they return pallets */
     { id: "fert", short: "Fertilizer building", name: "Fertilizer building & mechanic shop", k: "b", r: TB(165, 200, 232, 224), g: "Front", label: "Fertilizer building" },
     { id: "receiving", short: "Shipping / receiving", name: "Shipping / receiving yard", k: "y", r: [238, 798, 56, 52], g: "Front", label: "Shipping / receiving", truck: true },
@@ -353,9 +355,12 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   var BY = {}; P.forEach(function(p){ BY[p.id] = p; });
   /* v68 (Kyle 11/17 6:03 PM): which bin holds what, from Armando's labeled pictures */
   var BINS = {"bulk-front": [["rr-1-3", 0.07], ["quarry-blend", 0.2], ["concrete-sand", 0.33], ["dga", 0.46], ["gray-34", 0.62], ["rr-15", 0.8], ["rr-34", 0.93]], "more-bulk-top": [["bk-rr-48", 0], ["bk-white-bar", 1], ["bk-wr-115", 2], ["bk-rice", 3], ["bk-gray-38", 4], ["bk-bar-sand", 5]], "more-bulk-bot": [["bk-red-38", 0], ["bk-red-34", 1], ["bk-yel-38", 2], ["bk-yel-34", 3], ["bk-goose", 4], ["bk-wr-34", 5]]};
-  (function(){ var s1 = BY["bulk-front"].r, s2 = BY["more-bulk"].r;
-    BINS["bulk-front"].forEach(function(b){ var p = BY[b[0]]; if (p) p.bin = [s1[0] + s1[2] * b[1], s1[1] + s1[3] / 2]; });
-    ["top", "bot"].forEach(function(row, ri){ BINS["more-bulk-" + row].forEach(function(b){ var p = BY[b[0]]; if (p) p.bin = [s2[0] + 3 + (s2[2] - 6) * .86 * (b[1] + .5) / 6, s2[1] + (ri ? s2[3] * .75 : s2[3] * .25)]; }); }); })();
+  /* v76: bin centers read off Google's zoom-21 picture (map units). Stone #2: far row = reds … ¾ white (3/8 red at the right end);
+     office row = River 3–5 (right end) … Bar Sand (left end). Stone #1: River 1–3 at the driveway end … River ¾ at the far end. */
+  var BINPOS = { "bk-red-38": [301.1, 759.7], "bk-red-34": [292.3, 758.2], "bk-yel-38": [283.4, 756.8], "bk-yel-34": [274.8, 755.2], "bk-goose": [265.8, 753.7], "bk-wr-34": [256.7, 752.2],
+    "bk-rr-48": [300.2, 772.6], "bk-white-bar": [291.1, 771.1], "bk-wr-115": [281.9, 769.6], "bk-rice": [273.1, 768], "bk-gray-38": [264.7, 766.6], "bk-bar-sand": [256, 765.2],
+    "rr-1-3": [352.6, 918.8], "quarry-blend": [365.5, 919.6], "concrete-sand": [378.7, 919.6], "dga": [390.5, 920.9], "gray-34": [408.2, 922.7], "rr-15": [424.5, 927.5], "rr-34": [433, 929.1] };
+  Object.keys(BINPOS).forEach(function(id){ if (BY[id]) BY[id].bin = BINPOS[id]; });
 
   /* routes: points from the front lot (you are at the counter), with a step on the points that change direction */
   var S = [HERE[0] + 28, HERE[1] + 12, "Leave the parking lot by the office and turn left onto the Main Road."];   /* Kyle 11/17: directions the way he gives them */
@@ -518,7 +523,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
       if (p.id === "hoop-house") for (var rb = 1; rb < 8; rb++) el("path", { d: "M" + (r[0] + rb * r[2] / 8) + " " + (r[1] + 3) + " v" + (r[3] - 6), stroke: "var(--bldg-ink)", "stroke-width": .8, opacity: .35 }, g);   // the hoop ribs
       var t = el("text", { x: tcx, y: tcy + (p.big ? 3 : 0), "class": "lbl " + (p.k === "b" ? "bl" : (p.k === "x" ? "sm" : "")), "text-anchor": "middle" }, g); t.textContent = name; if (p.big) t.setAttribute("font-size", "16"); if (p.gate) t.setAttribute("style", "fill:#ffd21f;font-size:calc(18px * var(--k, 1));font-weight:800");   /* v70: Back Gate bigger */ if (p.culdesac){ t.textContent = ""; ["Belgard /", "EP Henry"].forEach(function(w, i){ var ts = document.createElementNS(NS, "tspan"); ts.setAttribute("x", tcx); ts.setAttribute("y", r[1] + r[3] + 2 + i * 11); ts.textContent = w; t.appendChild(ts); }); }   /* two short lines so it clears Truck Parking */
       if (p.id === "receiving"){ t.textContent = ""; ["Shipping /", "Receiving"].forEach(function(w, i){ var ts = document.createElementNS(NS, "tspan"); ts.setAttribute("x", tcx); ts.setAttribute("y", r[1] + 38 + i * 11); ts.textContent = w; t.appendChild(ts); }); }
-      if (p.huge){ t.setAttribute("style", "font-size:calc(30px + 9px * var(--k, 1));font-weight:800;letter-spacing:.06em"); t.setAttribute("y", tcy + 9); }   /* v70: Office bigger */
+      if (p.huge){ t.setAttribute("style", "font-size:19px;font-weight:800;letter-spacing:.04em"); t.setAttribute("y", tcy + 6.5);   /* v77 (Kyle 8:48 PM): Office fits the office roof, no bigger */ }   /* v70: Office bigger */
       if (vert){ t.setAttribute("y", p.lblBelow ? r[1] + r[3] + 11 : r[1] - 5); }   /* Kyle 11/16: tall yards get their name flat, just above them — easier to read than sideways */
     }
   });
@@ -529,14 +534,16 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
     var SH = { "rr-1-3": "River 1–3\"", "quarry-blend": "Quarry", "concrete-sand": "Concrete Sand", "dga": "DGA", "gray-34": "¾ Gray", "rr-15": "River 1½\"", "rr-34": "River ¾\"",
       "bk-rr-48": "River 3–5\"", "bk-white-bar": "White Bar", "bk-wr-115": "1½ White", "bk-rice": "Rice", "bk-gray-38": "⅜ Gray", "bk-bar-sand": "Bar Sand",
       "bk-red-38": "⅜ Red", "bk-red-34": "¾ Red", "bk-yel-38": "⅜ Yellow", "bk-yel-34": "¾ Yellow", "bk-goose": "Goose Egg", "bk-wr-34": "¾ White" };
-    var lay = function(list, yFor, sg){ list.forEach(function(b, i){ var p = BY[b[0]]; if (!p || !p.bin) return; var lv = i % 2, ly = yFor(lv);
-      var up = ly < p.bin[1], lead = el("path", { "class": "binlead", d: "M" + p.bin[0] + " " + p.bin[1] + " L" + p.bin[0] + " " + (ly + (up ? 1 : -3.6)) }, sg);
-      el("circle", { "class": "bindot", cx: p.bin[0], cy: p.bin[1], r: 1.6 }, sg);
-      var t = el("text", { "class": "binlbl", x: p.bin[0], y: ly, "data-lid": "bin:" + b[0] }, sg); t.textContent = SH[b[0]] || p.short; t.__lead = lead; t.__dot = p.bin; }); };
-    var g1 = el("g", { "data-follow": "bulk-front" }, bg), g2 = el("g", { "data-follow": "more-bulk" }, bg);   /* v71: bin names move with their Stone */
-    lay(BINS["bulk-front"], function(lv){ return s1[1] - 4 - lv * 6; }, g1);
-    lay(BINS["more-bulk-top"], function(lv){ return s2[1] - 4 - lv * 6; }, g2);
-    lay(BINS["more-bulk-bot"], function(lv){ return s2[1] + s2[3] + 7 + lv * 6; }, g2); })();
+    /* v76: one name per line, stacked away from the bins; the left-most bin gets the outer-most line so the lines never cross a name */
+    var stack = function(ids, dir){ var ps = ids.map(function(id){ return BY[id]; }).filter(function(p){ return p && p.bin; }).sort(function(a, b){ return a.bin[0] - b.bin[0]; }), n = ps.length;
+      var edge = dir < 0 ? Math.min.apply(null, ps.map(function(p){ return p.bin[1]; })) - 6 : Math.max.apply(null, ps.map(function(p){ return p.bin[1]; })) + 9;
+      ps.forEach(function(p, i){ var lv = n - 1 - i, ly = edge + dir * lv * 5.6, up = ly < p.bin[1];
+        var lead = el("path", { "class": "binlead", d: "M" + p.bin[0] + " " + p.bin[1] + " L" + p.bin[0] + " " + (ly + (up ? 1 : -3.6)) }, bg);
+        el("circle", { "class": "bindot", cx: p.bin[0], cy: p.bin[1], r: 1.4 }, bg);
+        var t = el("text", { "class": "binlbl", x: p.bin[0] - 1, y: ly, "data-lid": "bin:" + p.id, style: "text-anchor:start" }, bg); t.textContent = SH[p.id] || p.short; t.__lead = lead; t.__dot = p.bin; }); };
+    stack(["bk-red-38", "bk-red-34", "bk-yel-38", "bk-yel-34", "bk-goose", "bk-wr-34"], -1);   /* Stone #2 far row: names above */
+    stack(["bk-rr-48", "bk-white-bar", "bk-wr-115", "bk-rice", "bk-gray-38", "bk-bar-sand"], 1);   /* Stone #2 office row: names below */
+    stack(["rr-1-3", "quarry-blend", "concrete-sand", "dga", "gray-34", "rr-15", "rr-34"], -1); })();
   /* v67: the container yard drawn into its own box — 5 standing side by side toward the office, 4 lying across behind them */
   (function(){ var p = BY["container-yard"], g = svg.querySelector('[data-id="container-yard"]'); if (!g || !p) return; var r = p.r, sx = r[2] / 80, sy = r[3] / 84;
     var gg = el("g", { transform: "translate(" + r[0] + " " + r[1] + ") scale(" + sx.toFixed(3) + " " + sy.toFixed(3) + ")" }, g), cols = ["#4f78a8", "#a8463b", "#a8463b", "#d9dad6", "#4f78a8"];
@@ -572,7 +579,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 
   /* ---------- route + dot ---------- */
   var route = el("path", { id: "route", d: "" }), pulse = el("circle", { "class": "pulse", r: 16, fill: "var(--route)", opacity: 0 }), dot = el("circle", { "class": "youhere", r: 7, fill: "var(--route)", stroke: "#fff", "stroke-width": 2.5, opacity: 0 });
-  var here = el("g", { "class": "youhere" }); el("circle", { cx: HERE[0], cy: HERE[1], r: 6, fill: "#e8261b", stroke: "#fff", "stroke-width": 2.5 }, here); text(HERE[0], HERE[1] - 15, "You are here", "", here, "middle").setAttribute("style", "fill:#ff3b2f;font-weight:800");   /* Kyle 11/16: "You are here" pops in red */
+  var here = el("g", { "class": "youhere" }); el("circle", { cx: HERE[0], cy: HERE[1], r: 6, fill: "#e8261b", stroke: "#fff", "stroke-width": 2.5 }, here); text(HERE[0], HERE[1] - 12, "You are here", "", here, "middle").setAttribute("style", "fill:#ff3b2f;font-weight:800");   /* Kyle 11/16: "You are here" pops in red */
 
   /* ---------- pan / zoom: v = centre (x, y) and s = map units per screen pixel ---------- */
   var wrap = document.getElementById("wrap"), FULL = { x: 0, y: 0, w: MAPW, h: MAPH }, v = { x: 366, y: 900, s: 1 };
@@ -583,7 +590,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
     var w = z.w * v.s, h = z.h * v.s;
     v.x = Math.min(FULL.x + FULL.w + w * 0.25, Math.max(FULL.x - w * 0.25, v.x)); v.y = Math.min(FULL.y + FULL.h + h * 0.1, Math.max(FULL.y - h * 0.1, v.y));
     svg.setAttribute("viewBox", (v.x - w / 2) + " " + (v.y - h / 2) + " " + w + " " + h);
-    svg.style.setProperty("--k", Math.min(2.6, Math.max(1, 1 + (v.s - 1) * 0.7)).toFixed(2));
+    svg.style.setProperty("--k", (v.s >= 1 ? Math.min(2.6, 1 + (v.s - 1) * 0.7) : Math.max(0.12, v.s)).toFixed(3));   /* v77: zoomed in, names stay the same size on screen instead of growing huge */
     svg.style.setProperty("--pop", Math.max(0, Math.min(1, (v.s - 0.3) / 0.5)).toFixed(2));   /* v74: piles fade between zoom 0.8 and 0.3 */
     svg.classList.toggle("near", v.s < 0.5);   /* v68: bin names show when you zoom in close */
     if (svg.classList.contains("photo") && v.s < 1.6) photoArea(v.x - w / 2, v.y - h / 2, v.x + w / 2, v.y + h / 2, v.s < 0.16 && GSESS ? 21 : v.s < 0.35 && GSESS ? 20 : v.s < 0.75 ? 19 : 18, 60);   /* v69: only the tiles you look at, sharper as you zoom in (keeps Google inside its free tiles) */
@@ -646,7 +653,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   (function(){ var DEST = { "office": 1, "container-yard": 1 };
     CATS.forEach(function(c){ c[1].forEach(function(id){ if (/^[#|]/.test(id) || !BY[id]) return; DEST[id] = 1; if (BY[id].at) DEST[BY[id].at] = 1; if (/^containers-/.test(id)) DEST["container-yard"] = 1; }); });
     svg.querySelectorAll("text.lbl").forEach(function(t){ if (t.closest(".youhere") || t.closest("a") || /TUCKAHOE RD/.test(t.textContent)) return; var g = t.closest("[data-id]");
-      if (g && DEST[g.dataset.id]){ t.classList.remove("sm"); t.classList.add("dest"); } else t.classList.add("minor"); }); })();
+      if (g && DEST[g.dataset.id] && g.dataset.id !== "wood-chips"){   /* v77: Wood chip wall in blue */ t.classList.remove("sm"); t.classList.add("dest"); } else t.classList.add("minor"); }); })();
   CATS.forEach(function(c){ c[0] = tc(c[0]); c[1] = c[1].map(function(id){ return id.charAt(0) === "#" ? "#" + tc(id.slice(1)) : id; }); });
   var btns = document.getElementById("btns"), askText = document.getElementById("askText"), backB = document.getElementById("back"), routeBox = document.getElementById("routeBox"), cur = null;
   function showCats(){
@@ -718,7 +725,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   var GATEY = (function(){ var g = BY["back-gate"]; return g ? g.r[1] + g.r[3] / 2 : 520; })();
   var P_ALL = P;
   function shapeOf(id){ var p = BY[id], o = offOf(id); if (!p) return null;
-    if (p.bin){ var ob = offOf(p.at); return { c: [p.bin[0] + ob[0], p.bin[1] + ob[1]], r: 4 }; }
+    if (p.bin) return { c: [p.bin[0], p.bin[1]], r: 3 };   /* v76: bins are fixed to the photo */
     if (p.c) return { c: [p.c[0] + o[0], p.c[1] + o[1]], r: p.sz || (p.big ? 34 : p.small ? 12 : 20) };
     if (!p.r) return null;
     return { box: [p.r[0] + o[0], p.r[1] + o[1], p.r[2], p.r[3]] }; }
