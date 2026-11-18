@@ -27,6 +27,7 @@ body{background:var(--card);color:var(--ink);font-family:var(--f-body);font-size
 .top h1 small{display:block;font-family:var(--f-body);font-weight:600;font-size:11.5px;color:var(--mut);margin-top:2px}
 /* Kyle 11/16 11:39 PM: on phones the title bar is one slim line, so the map gets the room */
 @media (max-width:759px){.top{padding-block:3px 3px;gap:8px}.top h1{font-size:16px}.top h1 small{display:none}.top button{min-height:26px;padding:2px 9px;font-size:12px}}
+.satlink{font-size:12.5px;font-weight:800;padding:6px 11px;border-radius:8px;background:#2f8fe6;color:#fff;text-decoration:none;white-space:nowrap}
 .top button{font:inherit;font-size:12.5px;font-weight:700;min-height:32px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--chip);color:var(--ink)}
 /* Kyle 11/16 8:21 PM: the map on a dark dirt ground, whatever the phone's light/dark setting */
 .mapwrap{--ground:#2b2722; --ground2:#24211d; --road:#57514a; --road-edge:#6a6359; --ink:#f1eadc; --mut:#bdb3a2;
@@ -144,7 +145,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 <div class="app">
   <header class="top">
     <h1>Tuckahoe Yard Map<small>Peach Country · tap where you're going</small></h1>
-    <button type="button" id="moveBtn" hidden>Move piles</button><button type="button" id="qrOpen" aria-label="Show the QR code">QR</button>
+    <a id="satLink" class="satlink" href="https://kylerrowland92-tech.github.io/tuckahoe-yard-map/" target="_blank" rel="noopener" hidden>🛰 Satellite map</a><button type="button" id="moveBtn" hidden>Move piles</button><button type="button" id="qrOpen" aria-label="Show the QR code">QR</button>
   </header>
   <div class="mapwrap" id="wrap">
     <svg id="map" viewBox="0 0 732 1084" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="mapTitle"><title id="mapTitle">Drawing of the Tuckahoe yard, front gate at the bottom, back of the property at the top</title></svg>
@@ -982,6 +983,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
     label(); if (LANG === "es") walk(document.body);
   })();
 </script>
+<script>try{ if (!/github\.io$/.test(location.hostname)) document.getElementById("satLink").hidden = false; }catch(_){}</script>
 <div class="expired" id="expired" hidden><div class="excard"><b>⏱ Time's up</b><span>Scan the QR code at the front table to open the map again.</span><span class="es">Se acabó el tiempo. Escanee el código QR en la mesa del frente para abrir el mapa otra vez.</span><span>Peach Country · <a href="tel:+18562263834">(856) 226-3834</a></span></div></div>
 <script>
   /* Kyle 11/17 5:41 PM: "I don't want people to be able to keep this map … rescan the QR code after like 15 minutes".
