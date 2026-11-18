@@ -162,7 +162,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   </header>
   <div class="mapwrap" id="wrap">
     <svg id="map" viewBox="0 0 732 1084" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="mapTitle"><title id="mapTitle">Drawing of the Tuckahoe yard, front gate at the bottom, back of the property at the top</title></svg>
-    <div class="zoom"><button type="button" id="zIn" aria-label="Zoom in">+</button><button type="button" id="zOut" aria-label="Zoom out">−</button><button type="button" id="zAll" class="wide" aria-label="Show the whole yard">All</button><button type="button" id="zPhoto" class="ph" aria-label="Switch between the photo and the drawing">Drawing</button></div>
+    <div class="zoom"><button type="button" id="zIn" aria-label="Zoom in">+</button><button type="button" id="zOut" aria-label="Zoom out">−</button><button type="button" id="zAll" class="wide" aria-label="Show the whole yard">All</button><button type="button" id="zPhoto" class="ph" hidden aria-hidden="true">Drawing</button></div>
     <div class="hint" id="hint">Pinch, or tap All, to see the whole yard</div>
   </div>
   <div class="panel" id="panel">
@@ -620,7 +620,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   document.getElementById("zIn").addEventListener("click", function(){ var r = wrap.getBoundingClientRect(); zoomAt(0.6, r.left + r.width / 2, r.top + r.height / 2); });
   document.getElementById("zOut").addEventListener("click", function(){ var r = wrap.getBoundingClientRect(); zoomAt(1.6, r.left + r.width / 2, r.top + r.height / 2); });
   document.getElementById("zAll").addEventListener("click", function(){ fit(FULL, 8); });
-  var PHOTO_ON = true; try{ if (localStorage.getItem("ymap-photo") === "0") PHOTO_ON = false; }catch(_){}
+  var PHOTO_ON = true; try{ localStorage.removeItem("ymap-photo"); }catch(_){}   /* v80: always the photo */
   function photoSet(on, init){ svg.classList.toggle("photo", on); document.getElementById("zPhoto").textContent = on ? "Drawing" : "Photo"; if (on && !init) apply(); }
   window.photoOff = function(auto){ photoSet(false); if (!auto) try{ localStorage.setItem("ymap-photo", "0"); }catch(_){} };
   document.getElementById("zPhoto").addEventListener("click", function(){ var on = !svg.classList.contains("photo"); photoSet(on); try{ localStorage.setItem("ymap-photo", on ? "1" : "0"); }catch(_){} });
