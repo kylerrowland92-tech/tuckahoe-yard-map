@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="description" content="Peach Country Tuckahoe yard map — tap where you are going."><style>*,*::before,*::after{box-sizing:border-box}html,body{margin:0;padding:0}[hidden]{display:none!important}</style></head><body><title>Tuckahoe Yard Map</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="description" content="Peach Country Tuckahoe yard map — tap where you are going."><style>*,*::before,*::after{box-sizing:border-box}html,body{margin:0;padding:0}[hidden]{display:none!important}</style></head><body><script>window.YMAP_AT0 = location.search + location.hash;</script><title>Tuckahoe Yard Map</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;600;700&display=swap">
 <style>
@@ -75,6 +75,11 @@ svg:not(.near) .binlbl,svg:not(.near) .bindot{display:none}
 svg.near [data-id="more-bulk"] text.lbl,svg.near [data-id="bulk-front"] text.lbl{display:none}
 .zoom button.ph{font-size:9px;font-weight:800;letter-spacing:-.02em}
 body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+/* Kyle 11/18 4:51 PM: TV static when the map might be captured (red, black and white, like a dead channel) */
+#tvStatic{position:fixed;inset:0;width:100%;height:100%;z-index:9999;display:none;image-rendering:pixelated;background:#000;pointer-events:none}
+#tvStatic.on{display:block;pointer-events:auto}
+.mapwrap svg,.mapwrap img,.mapwrap image{-webkit-user-drag:none;user-drag:none}
+@media print{body>*{display:none!important}body::before{content:"Peach Country yard map \2014 scan the QR code at the front table";display:block;padding:40px;font:700 18px/1.4 Arial,sans-serif;color:#000}}
 .expired{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:20px;background:#1d1b18;color:#f1eadc;text-align:center;font-family:var(--f-body)}
 .expired[hidden]{display:none}
 .excard{max-width:340px;display:flex;flex-direction:column;gap:12px}
@@ -1078,6 +1083,48 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   })();
 </script>
 <script>try{ if (!/github\.io$/.test(location.hostname)) document.getElementById("satLink").hidden = false; }catch(_){}</script>
+<canvas id="tvStatic" width="120" height="214" aria-hidden="true"></canvas>
+<script>
+  /* Kyle 11/18 4:51 PM ("Maybe if somebody tries to screenshot, the app sees it and then disfigures and discolors the screen … like the old
+     analog TVs when you were on the wrong channel"): a web page is never told about a phone's screenshot buttons, so this covers the
+     moments it CAN see — the page going to the background (the app switcher's picture, another tab), the window losing focus (a
+     computer's snipping tool), PrintScreen / the Mac screenshot keys, and printing — with red, black and white static. Public copy only. */
+  (function(){
+    if (!/github\.io$/.test(location.hostname) && !/[?&]statictest=1\b/.test(location.search)) return;
+    if (/[?&]edit\b|#edit|#dots|[?&]dots\b/.test((window.YMAP_AT0 || "") + location.search + location.hash)) return;   // the map clears #edit once it opens Move mode
+    var cv = document.getElementById("tvStatic"); if (!cv || !cv.getContext) return;
+    var cx = cv.getContext("2d"), W = cv.width, H = cv.height, img = cx.createImageData(W, H), raf = 0, until = 0, roll = 0;
+    var COL = [[212, 37, 28], [0, 0, 0], [255, 255, 255], [0, 0, 0], [140, 18, 14], [235, 235, 235]];
+    function frame(){
+      var d = img.data; roll = (roll + 7) % H;
+      for (var y = 0; y < H; y++){
+        var band = Math.abs(y - roll) < 9, line = Math.random() < 0.04;
+        for (var x = 0; x < W; x++){
+          var c = line ? COL[0] : COL[(Math.random() * COL.length) | 0], k = (y * W + x) * 4;
+          var f = band ? 1.25 : 1; d[k] = Math.min(255, c[0] * f); d[k + 1] = Math.min(255, c[1] * f); d[k + 2] = Math.min(255, c[2] * f); d[k + 3] = 255;
+        }
+      }
+      cx.putImageData(img, 0, 0);
+    }
+    function loop(){ frame(); if (until && Date.now() > until && !document.hidden && document.hasFocus()){ off(); return; } raf = setTimeout(loop, 60); }
+    function on(ms){ if (document.querySelector("#map.editing")) return; frame(); cv.classList.add("on"); until = ms ? Date.now() + ms : 0; clearTimeout(raf); raf = setTimeout(loop, 60); }
+    function off(){ clearTimeout(raf); raf = 0; until = 0; cv.classList.remove("on"); }
+    window.ymapStatic = { on: on, off: off };   // for the test
+    document.addEventListener("visibilitychange", function(){ if (document.hidden) on(); else if (!until) off(); });
+    window.addEventListener("pagehide", function(){ on(); });
+    window.addEventListener("blur", function(){ on(); });
+    window.addEventListener("focus", function(){ if (!until) off(); });
+    window.addEventListener("pageshow", function(){ if (!document.hidden && document.hasFocus() && !until) off(); });
+    var shotKey = function(e){
+      var k = e.key || "", mac = e.metaKey && e.shiftKey && /^[345]$/.test(k), win = e.metaKey && e.shiftKey && /^s$/i.test(k);
+      if (k === "PrintScreen" || e.keyCode === 44 || mac || win){ on(1500); try{ if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText("Peach Country yard map \u2014 scan the QR code at the front table").catch(function(){}); }catch(_){} }
+    };
+    document.addEventListener("keydown", shotKey, true); document.addEventListener("keyup", shotKey, true);
+    window.addEventListener("beforeprint", function(){ on(); }); window.addEventListener("afterprint", function(){ off(); });
+    cv.addEventListener("pointerdown", function(){ off(); });   // tap to come back if focus is slow to return
+    document.addEventListener("dragstart", function(e){ if (e.target && e.target.closest && e.target.closest("#wrap")) e.preventDefault(); }, true);
+  })();
+</script>
 <div class="expired" id="expired" hidden><div class="excard"><b>⏱ Time's up</b><span>Scan the QR code at the front table to open the map again.</span><span class="es">Se acabó el tiempo. Escanee el código QR en la mesa del frente para abrir el mapa otra vez.</span><span>Peach Country · <a href="tel:+18562263834">(856) 226-3834</a></span></div></div>
 <script>
   /* Kyle 11/17 5:41 PM: "I don't want people to be able to keep this map … rescan the QR code after like 15 minutes".
