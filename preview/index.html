@@ -37,8 +37,11 @@ body{background:var(--card);color:var(--ink);font-family:var(--f-body);font-size
 .mapwrap::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='170'%3E%3Ctext x='150' y='95' text-anchor='middle' transform='rotate(-24 150 85)' font-family='Arial,sans-serif' font-size='15' font-weight='700' fill='%23ffffff' fill-opacity='.09'%3EPEACH COUNTRY %C2%B7 SCAN AT THE FRONT TABLE%3C/text%3E%3C/svg%3E");background-repeat:repeat}
 .zoom,.hint{z-index:3}
 /* v68 photo mode: the real aerial under the map. Drawn piles and buildings turn invisible (still tappable); names stay. */
-svg.photo .draw,svg.photo .roadg{display:none}
-svg.photo.editing .roadg{display:inline;opacity:.75}
+svg.photo .draw{display:none}
+/* v70 (Kyle 6:58 PM): the roads in blue over the photo */
+svg.photo .roadg .re{display:none}
+svg.photo .roadg .rr{stroke:#2f8fe6;stroke-opacity:.6;stroke-width:9}
+svg.photo .roadg .rd{stroke:rgba(255,255,255,.55);stroke-width:1.2}
 svg.photo [data-id] > :not(text):not(.pl):not(.keep){display:none}
 svg.photo [data-id] .pl{fill-opacity:0 !important;stroke-opacity:0 !important}
 svg.photo [data-id="back-gate"] > *{display:inline}
@@ -46,7 +49,9 @@ svg.photo [data-id="trucks"] text:not(.lbl),svg.photo [data-id="windrow-1"] text
 svg.photo .lbl.bl{fill:#ffd400}
 svg.photo .lbl{stroke:#111;stroke-width:3.4px}
 svg:not(.photo) .photolayer,svg:not(.photo) .phcredit{display:none}
-.binlbl{font-family:var(--f-sign);font-weight:700;font-size:4.6px;fill:#fff;paint-order:stroke;stroke:#111;stroke-width:1.3px;text-anchor:middle}
+.binlead{stroke:#ffd400;stroke-width:.4;fill:none}
+svg:not(.near) .binlead{display:none}
+.binlbl{font-family:var(--f-sign);font-weight:700;font-size:4.4px;fill:#fff;paint-order:stroke;stroke:#111;stroke-width:1.3px;text-anchor:middle}
 .bindot{fill:#ffd400;stroke:#111;stroke-width:.5}
 svg:not(.near) .binlbl,svg:not(.near) .bindot{display:none}
 svg.near [data-id="more-bulk"] text.lbl,svg.near [data-id="bulk-front"] text.lbl{display:none}
@@ -116,7 +121,9 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .top .langsw{margin-left:auto}.top .langsw + button{margin-left:6px}.tel text{text-decoration:underline}   /* Kyle 11/16 10:32 PM: the less important names in blue */
 .lbl.bl{stroke:#1d1b18;stroke-width:2.6px;paint-order:stroke}
 /* names grow a little as you zoom out, so they stay readable on a whole-yard view (--k is set with the zoom) */
-.lbl:not(.sm):not(.bl){font-size:calc(11px * var(--k, 1));stroke-width:calc(3px * var(--k, 1))}
+.lbl:not(.sm):not(.bl){font-size:calc(12px * var(--k, 1));stroke-width:calc(3px * var(--k, 1))}
+.lbl.sm{font-size:calc(10.5px * var(--k, 1));stroke-width:calc(2.8px * var(--k, 1))}   /* v70: landmark names bigger */
+.lmk{font-size:calc(10px * var(--k, 1)) !important}
 .lbl.bl{font-size:calc(10.5px * var(--k, 1))}
 .hit{cursor:pointer}
 #route{fill:none;stroke:var(--route);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:2 8;vector-effect:non-scaling-stroke}
@@ -239,9 +246,9 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
     /* Kyle 11/16 11:11 PM: no shading on the open areas — too messy. The office lane is drawn as a regular road. */
     var c = RD.ring[0], ds = ["main", "rec", "cross", "back", "south", "mill"].map(function(k){ return dOf(RD[k]); });
     ds.push("M" + (c[0] + 22) + " " + c[1] + " A22 22 0 1 0 " + (c[0] - 22) + " " + c[1] + " A22 22 0 1 0 " + (c[0] + 22) + " " + c[1]);
-    ds.forEach(function(d){ el("path", Object.assign({ d: d }, edge), roadG); });
-    ds.forEach(function(d){ el("path", Object.assign({ d: d }, roadStyle), roadG); });
-    ds.forEach(function(d){ el("path", { d: d, fill: "none", stroke: "rgba(255,255,255,.22)", "stroke-width": 1, "stroke-dasharray": "7 9" }, roadG); });
+    ds.forEach(function(d){ el("path", Object.assign({ d: d, "class": "re" }, edge), roadG); });
+    ds.forEach(function(d){ el("path", Object.assign({ d: d, "class": "rr" }, roadStyle), roadG); });
+    ds.forEach(function(d){ el("path", { d: d, "class": "rd", fill: "none", stroke: "rgba(255,255,255,.22)", "stroke-width": 1, "stroke-dasharray": "7 9" }, roadG); });
   }
   drawRoads();
   /* Kyle 11/16 8:19 PM: the wood chip wall runs all the way across to the left — you can't get through it — with a hill on the other side */
@@ -424,7 +431,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
           el("circle", { cx: tx, cy: ty, r: tr * .62, fill: "none", stroke: "#3a3a3a", "stroke-width": .8 }, g);
           el("circle", { cx: tx, cy: ty, r: 1.6, fill: "#555" }, g);
           el("path", { d: "M" + (tx - tr * .7) + " " + (ty - tr * .45) + " a" + tr + " " + tr + " 0 0 1 " + (tr * .9) + " " + (-tr * .45), fill: "none", stroke: "#9a9a9a", "stroke-width": .8, opacity: .6 }, g); });
-        var tt = el("text", { x: r[0] + r[2] / 2, y: r[1] + r[3] + 6, "text-anchor": "middle", "font-size": 6.5, "font-weight": 700, fill: "#9fd0ee", "font-family": "Barlow Condensed, Arial Narrow, sans-serif" }, g); tt.textContent = "Water Tanks";
+        var tt = el("text", { x: r[0] + r[2] / 2, y: r[1] + r[3] + 6, "text-anchor": "middle", "class": "lmk", "font-size": 6.5, "font-weight": 700, fill: "#9fd0ee", "font-family": "Barlow Condensed, Arial Narrow, sans-serif", stroke: "#111", "stroke-width": 2.2, "paint-order": "stroke" }, g); tt.textContent = "Water Tanks";
       } else if (p.windrow1){
         el("rect", { x: r[0] + 2, y: r[1] + 2, width: r[2], height: r[3], rx: 4.5, fill: "#000", opacity: .35 }, g);
         el("rect", { x: r[0], y: r[1], width: r[2], height: r[3], rx: 4.5, fill: "#5b4330", stroke: "#7d6048", "stroke-width": .6 }, g);
@@ -458,12 +465,12 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
         var ccx2 = r[0] + r[2] / 2, ccy2 = r[1] + r[3] / 2;
         el("ellipse", { cx: ccx2, cy: ccy2, rx: r[2] / 2, ry: r[3] / 2, fill: "#3f5a2a", stroke: "#6f8f4a", "stroke-width": 1 }, g);
         for (var cr = -6; cr <= 6; cr++){ var yy3 = ccy2 + cr * r[3] / 14, hw = r[2] / 2 * Math.sqrt(Math.max(0, 1 - Math.pow((yy3 - ccy2) / (r[3] / 2), 2))) - 6; if (hw > 4) el("path", { d: "M" + (ccx2 - hw) + " " + yy3 + " H" + (ccx2 + hw), stroke: "#7d9a52", "stroke-width": .8, "stroke-dasharray": "2 3", opacity: .8 }, g); }
-        var ct = el("text", { x: ccx2, y: ccy2 + 5, "text-anchor": "middle", "font-size": 15, "font-weight": 800, fill: "#cfe3a8", "font-family": "Barlow Condensed, Arial Narrow, sans-serif", "letter-spacing": ".06em" }, g); ct.textContent = "CORNFIELD";
+        var ct = el("text", { x: ccx2, y: ccy2 + 5, "text-anchor": "middle", style: "font-size:calc(16px * var(--k, 1))", stroke: "#111", "stroke-width": 3, "paint-order": "stroke", "font-weight": 800, fill: "#cfe3a8", "font-family": "Barlow Condensed, Arial Narrow, sans-serif", "letter-spacing": ".06em" }, g); ct.textContent = "CORNFIELD";
       } else if (p.pond){
         var pcx = r[0] + r[2] / 2, pcy = r[1] + r[3] / 2 - 3;
         el("ellipse", { cx: pcx, cy: pcy, rx: r[2] / 2, ry: r[3] / 2 - 4, fill: "#2f6f9a", stroke: "#7fb6d6", "stroke-width": 1 }, g);
         el("path", { d: "M" + (pcx - 12) + " " + (pcy - 3) + " q4 -2 8 0 t8 0 M" + (pcx - 6) + " " + (pcy + 4) + " q4 -2 8 0 t8 0", fill: "none", stroke: "#a9d3ea", "stroke-width": .8, opacity: .8 }, g);
-        var wt = el("text", { x: pcx, y: r[1] + r[3] + 4, "text-anchor": "middle", "font-size": 7, "font-weight": 700, fill: "#9fd0ee", "font-family": "Barlow Condensed, Arial Narrow, sans-serif" }, g); wt.textContent = "Water (for black mulch)";
+        var wt = el("text", { x: pcx, y: r[1] + r[3] + 4, "text-anchor": "middle", "class": "lmk", "font-size": 7, "font-weight": 700, fill: "#9fd0ee", "font-family": "Barlow Condensed, Arial Narrow, sans-serif", stroke: "#111", "stroke-width": 2.2, "paint-order": "stroke" }, g); wt.textContent = "Water (for black mulch)";
       } else if (p.hill){
         var hb = r[1] + r[3];
         el("path", { d: "M" + r[0] + " " + hb + " Q" + (r[0] + r[2] * .25) + " " + (r[1] - 6) + " " + (r[0] + r[2] * .5) + " " + (r[1] + 6) + " Q" + (r[0] + r[2] * .78) + " " + (r[1] - 8) + " " + (r[0] + r[2]) + " " + hb + " Z", fill: "#4d6b3c", stroke: "#78955f", "stroke-width": 1 }, g);
@@ -499,21 +506,26 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
           el("path", { d: "M" + tx + " " + (ty - 1) + " h11 M" + tx + " " + (ty + 1.5) + " h11", stroke: "var(--pallet-edge)", "stroke-width": .4 }, g); } }
       var vert = r[3] > r[2] * 2.2, tcx = r[0] + r[2] / 2, tcy = p.pstack ? r[1] + r[3] - 4 : p.trucks ? r[1] + r[3] - 5 : p.gate ? r[1] - 4 : p.culdesac ? r[1] - 6 : p.bins2 ? r[1] - 4 : p.patio ? r[1] - 5 : p.truck ? r[1] + r[3] - 7 : r[1] + r[3] / 2 + 4;
       if (p.id === "hoop-house") for (var rb = 1; rb < 8; rb++) el("path", { d: "M" + (r[0] + rb * r[2] / 8) + " " + (r[1] + 3) + " v" + (r[3] - 6), stroke: "var(--bldg-ink)", "stroke-width": .8, opacity: .35 }, g);   // the hoop ribs
-      var t = el("text", { x: tcx, y: tcy + (p.big ? 3 : 0), "class": "lbl " + (p.k === "b" ? "bl" : (p.k === "x" ? "sm" : "")), "text-anchor": "middle" }, g); t.textContent = name; if (p.big) t.setAttribute("font-size", "16"); if (p.gate) t.setAttribute("style", "fill:#ffd21f;font-size:13px;font-weight:800"); if (p.culdesac){ t.textContent = ""; ["Belgard /", "EP Henry"].forEach(function(w, i){ var ts = document.createElementNS(NS, "tspan"); ts.setAttribute("x", tcx); ts.setAttribute("y", r[1] + r[3] + 2 + i * 11); ts.textContent = w; t.appendChild(ts); }); }   /* two short lines so it clears Truck Parking */
+      var t = el("text", { x: tcx, y: tcy + (p.big ? 3 : 0), "class": "lbl " + (p.k === "b" ? "bl" : (p.k === "x" ? "sm" : "")), "text-anchor": "middle" }, g); t.textContent = name; if (p.big) t.setAttribute("font-size", "16"); if (p.gate) t.setAttribute("style", "fill:#ffd21f;font-size:calc(18px * var(--k, 1));font-weight:800");   /* v70: Back Gate bigger */ if (p.culdesac){ t.textContent = ""; ["Belgard /", "EP Henry"].forEach(function(w, i){ var ts = document.createElementNS(NS, "tspan"); ts.setAttribute("x", tcx); ts.setAttribute("y", r[1] + r[3] + 2 + i * 11); ts.textContent = w; t.appendChild(ts); }); }   /* two short lines so it clears Truck Parking */
       if (p.id === "receiving"){ t.textContent = ""; ["Shipping /", "Receiving"].forEach(function(w, i){ var ts = document.createElementNS(NS, "tspan"); ts.setAttribute("x", tcx); ts.setAttribute("y", r[1] + 38 + i * 11); ts.textContent = w; t.appendChild(ts); }); }
-      if (p.huge){ t.setAttribute("style", "font-size:26px;font-weight:800;letter-spacing:.06em"); t.setAttribute("y", tcy + 6); }
+      if (p.huge){ t.setAttribute("style", "font-size:calc(30px + 9px * var(--k, 1));font-weight:800;letter-spacing:.06em"); t.setAttribute("y", tcy + 9); }   /* v70: Office bigger */
       if (vert){ t.setAttribute("y", p.lblBelow ? r[1] + r[3] + 11 : r[1] - 5); }   /* Kyle 11/16: tall yards get their name flat, just above them — easier to read than sideways */
     }
   });
   /* Kyle 11/16 8:15 PM: the container yard just behind the office — 5 containers standing side by side, and 4 lying across behind
      them, around a little square you can drive into; diagonal from the fertilizer building, before Shipping / receiving */
-  (function(){ var bg = el("g", { "class": "bins" });
-    P.forEach(function(p){ if (!p.bin) return; var short = (p.short || p.name).replace(/ \(.*\)$/, "");
+  (function(){ var bg = el("g", { "class": "bins" }), s1 = BY["bulk-front"].r, s2 = BY["more-bulk"].r;
+    /* v70 (Kyle 6:58 PM "make sure everything's horizontal"): short flat names; every other one a step further out so they don't touch */
+    var SH = { "rr-1-3": "River 1–3\"", "quarry-blend": "Quarry", "concrete-sand": "Concrete Sand", "dga": "DGA", "gray-34": "¾ Gray", "rr-15": "River 1½\"", "rr-34": "River ¾\"",
+      "bk-rr-48": "River 3–5\"", "bk-white-bar": "White Bar", "bk-wr-115": "1½ White", "bk-rice": "Rice", "bk-gray-38": "⅜ Gray", "bk-bar-sand": "Bar Sand",
+      "bk-red-38": "⅜ Red", "bk-red-34": "¾ Red", "bk-yel-38": "⅜ Yellow", "bk-yel-34": "¾ Yellow", "bk-goose": "Goose Egg", "bk-wr-34": "¾ White" };
+    var lay = function(list, yFor){ list.forEach(function(b, i){ var p = BY[b[0]]; if (!p || !p.bin) return; var lv = i % 2, ly = yFor(lv);
+      var up = ly < p.bin[1], lead = el("path", { "class": "binlead", d: "M" + p.bin[0] + " " + p.bin[1] + " L" + p.bin[0] + " " + (ly + (up ? 1 : -3.6)) }, bg);
       el("circle", { "class": "bindot", cx: p.bin[0], cy: p.bin[1], r: 1.6 }, bg);
-      var t = el("text", { "class": "binlbl", x: p.bin[0], y: p.bin[1] + (BY["more-bulk"] && p.at === "more-bulk" && p.bin[1] < BY["more-bulk"].r[1] + BY["more-bulk"].r[3] / 2 ? -3 : 7) }, bg);
-      if (p.at === "bulk-front"){ t.setAttribute("transform", "rotate(-90 " + p.bin[0] + " " + p.bin[1] + ")"); t.setAttribute("x", p.bin[0]); t.setAttribute("y", p.bin[1] + 1.6); t.setAttribute("style", "text-anchor:middle"); }
-      else { var top2 = p.bin[1] < BY["more-bulk"].r[1] + BY["more-bulk"].r[3] / 2; t.setAttribute("transform", "rotate(-90 " + p.bin[0] + " " + p.bin[1] + ")"); t.setAttribute("x", p.bin[0] + (top2 ? 2.5 : -2.5)); t.setAttribute("y", p.bin[1] + 1.6); t.setAttribute("style", "text-anchor:" + (top2 ? "start" : "end")); }
-      t.textContent = short; }); })();
+      var t = el("text", { "class": "binlbl", x: p.bin[0], y: ly, "data-lid": "bin:" + b[0] }, bg); t.textContent = SH[b[0]] || p.short; t.__lead = lead; t.__dot = p.bin; }); };
+    lay(BINS["bulk-front"], function(lv){ return s1[1] - 4 - lv * 6; });
+    lay(BINS["more-bulk-top"], function(lv){ return s2[1] - 4 - lv * 6; });
+    lay(BINS["more-bulk-bot"], function(lv){ return s2[1] + s2[3] + 7 + lv * 6; }); })();
   /* v67: the container yard drawn into its own box — 5 standing side by side toward the office, 4 lying across behind them */
   (function(){ var p = BY["container-yard"], g = svg.querySelector('[data-id="container-yard"]'); if (!g || !p) return; var r = p.r, sx = r[2] / 80, sy = r[3] / 84;
     var gg = el("g", { transform: "translate(" + r[0] + " " + r[1] + ") scale(" + sx.toFixed(3) + " " + sy.toFixed(3) + ")" }, g), cols = ["#4f78a8", "#a8463b", "#a8463b", "#d9dad6", "#4f78a8"];
@@ -533,7 +545,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   // the gate, parking, the evergreens by the driveway
   var gx = RD.main[0][0];
   el("rect", { x: gx - 9, y: ROADY - 14, width: 18, height: 4, fill: "var(--ink)", "class": "draw" }); text(gx + 14, ROADY - 9, "GATE", "sm", null, "start");
-  [text(PARK[0][0], PARK[0][1], "PARKING", "sm"), text(PARK[1][0], PARK[1][1], "PARKING", "sm")].forEach(function(t){ t.setAttribute("style", "fill:#ffd400;font-size:11px;font-weight:800;letter-spacing:.08em"); });
+  [text(PARK[0][0], PARK[0][1], "PARKING", "sm"), text(PARK[1][0], PARK[1][1], "PARKING", "sm")].forEach(function(t){ t.setAttribute("style", "fill:#ffd400;font-size:calc(13px * var(--k, 1));font-weight:800;letter-spacing:.08em"); });
   var evg = el("g", { "class": "draw" }); for (var t2 = 0; t2 < 6; t2++){ var tx2 = gx + 30 + t2 * 12, ty2 = ROADY - 4;
     el("ellipse", { cx: tx2 + 1.5, cy: ty2 + .5, rx: 5, ry: 1.6, fill: "#000", opacity: .4 }, evg); el("rect", { x: tx2 - 1, y: ty2 - 3, width: 2, height: 3.5, fill: "#6b4a2b" }, evg);
     [[0, 6.5, 6], [-4, 5.2, 5], [-7.5, 3.8, 4]].forEach(function(k, j){ el("path", { d: "M" + (tx2 - k[1]) + " " + (ty2 - 2 + k[0]) + " L" + tx2 + " " + (ty2 - 2 + k[0] - k[2] - 2) + " L" + (tx2 + k[1]) + " " + (ty2 - 2 + k[0]) + " Z", fill: ["#2f5d34", "#3b7040", "#4a8550"][j] }, evg); }); }
@@ -560,7 +572,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
     var w = z.w * v.s, h = z.h * v.s;
     v.x = Math.min(FULL.x + FULL.w + w * 0.25, Math.max(FULL.x - w * 0.25, v.x)); v.y = Math.min(FULL.y + FULL.h + h * 0.1, Math.max(FULL.y - h * 0.1, v.y));
     svg.setAttribute("viewBox", (v.x - w / 2) + " " + (v.y - h / 2) + " " + w + " " + h);
-    svg.style.setProperty("--k", Math.min(1.5, Math.max(1, 1 + (v.s - 1) * 0.4)).toFixed(2));
+    svg.style.setProperty("--k", Math.min(2.6, Math.max(1, 1 + (v.s - 1) * 0.7)).toFixed(2));
     svg.classList.toggle("near", v.s < 0.5);   /* v68: bin names show when you zoom in close */
     if (svg.classList.contains("photo") && v.s < 1.6) photoArea(v.x - w / 2, v.y - h / 2, v.x + w / 2, v.y + h / 2, v.s < 0.35 && GSESS ? 20 : v.s < 0.75 ? 19 : 18, 60);   /* v69: only the tiles you look at, sharper as you zoom in (keeps Google inside its free tiles) */
     var f = Math.max(14, 17 * v.s);   // the destination name and "You are here" stay readable at any zoom
@@ -771,12 +783,13 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
     document.getElementById("dest").textContent = "Drag piles and buildings into place";
     var st = document.getElementById("steps"); st.textContent = "";
     var bar = document.createElement("div"); bar.className = "btns"; bar.style.marginTop = "6px";
-    [["Copy positions", copyPos], ["Undo my moves", function(){ OFF = JSON.parse(JSON.stringify(BAKED)); try{ localStorage.removeItem("ymap-off"); }catch(_){} svg.querySelectorAll("[data-id]").forEach(function(g){ g.removeAttribute("transform"); }); Object.keys(OFF).forEach(place); RD = JSON.parse(JSON.stringify(RD_BAKED)); try{ localStorage.removeItem("ymap-roads"); }catch(_){} drawRoads(); drawHandles(); }],
+    [["Move words: off", function(){ WMODE = !WMODE; this.textContent = WMODE ? "Move words: ON" : "Move words: off"; this.setAttribute("aria-pressed", WMODE); }], ["Copy positions", copyPos], ["Undo my moves", function(){ OFF = JSON.parse(JSON.stringify(BAKED)); LOFF = JSON.parse(JSON.stringify(LBAKED)); try{ localStorage.removeItem("ymap-off"); localStorage.removeItem("ymap-loff"); }catch(_){} svg.querySelectorAll("text[data-lid]").forEach(lplace); svg.querySelectorAll("[data-id]").forEach(function(g){ g.removeAttribute("transform"); }); Object.keys(OFF).forEach(place); RD = JSON.parse(JSON.stringify(RD_BAKED)); try{ localStorage.removeItem("ymap-roads"); }catch(_){} drawRoads(); drawHandles(); }],
      ["Done", function(){ EDIT = false; svg.classList.remove("editing"); drawHandles(); try{ history.replaceState(null, "", location.pathname + location.search); }catch(_){} bar.remove(); outBox.hidden = true; showCats(); }]].forEach(function(x){
       var b = document.createElement("button"); b.type = "button"; b.textContent = x[0]; b.addEventListener("click", x[1]); bar.appendChild(b); });
     routeBox.appendChild(bar); routeBox.appendChild(outBox);
     var li = document.createElement("li"); li.dataset.n = "i"; li.textContent = "Drag a pile, yard or building with one finger. Pinch or use + − to zoom. When you\u2019re done, tap Copy positions and paste it to Claude, who puts the moves on the map for everyone."; st.appendChild(li);
     var li2 = document.createElement("li"); li2.dataset.n = "i"; li2.textContent = "Roads and open areas: drag a white dot to bend them. Drag a small hollow dot (between two white dots) to add a new bend. Double-tap a white dot to remove it."; st.appendChild(li2);
+    var li3 = document.createElement("li"); li3.dataset.n = "i"; li3.textContent = "Names: tap Move words so it says ON, then drag any name (bin names show when you zoom in close). Tap it again to go back to moving piles."; st.appendChild(li3);
     drawHandles();
   }
   /* road handles — white dots on every bend, hollow dots between them to add a bend */
@@ -799,9 +812,24 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   window.addEventListener("pointermove", function(e){ if (!hdrag) return; var q = RD[hdrag.k][hdrag.i]; q[0] = Math.round((q[0] + (e.clientX - hdrag.x) * v.s) * 10) / 10; q[1] = Math.round((q[1] + (e.clientY - hdrag.y) * v.s) * 10) / 10; hdrag.x = e.clientX; hdrag.y = e.clientY; drawRoads(); drawHandles(); });
   window.addEventListener("pointerup", function(){ if (!hdrag) return; hdrag = null; saveRoads(); });
   var outBox = document.createElement("textarea"); outBox.hidden = true; outBox.rows = 3; outBox.readOnly = true; outBox.style.cssText = "width:100%;box-sizing:border-box;font-size:12px;margin-top:6px";
+  /* v70 (Kyle 6:58 PM): every name can be dragged on its own in Move mode ("Move words"); moves stay on this device until Kyle
+     taps Copy positions and Claude builds them in for everyone (LBAKED). */
+  var LBAKED = {}, LOFF = JSON.parse(JSON.stringify(LBAKED)), WMODE = false, ldrag = null;
+  try{ var ml = JSON.parse(localStorage.getItem("ymap-loff") || "null"); if (ml && ml.v === 1) LOFF = ml.off; }catch(_){}
+  (function(){ var n = 0; svg.querySelectorAll("text").forEach(function(t){ if (t.dataset.lid || t.closest(".handles,.youhere") || t.classList.contains("flag") || t.classList.contains("phcredit")) return;
+    var g = t.closest("[data-id]"); t.dataset.lid = g ? g.dataset.id + ":" + Array.prototype.indexOf.call(g.querySelectorAll("text"), t) : "t" + (n++); }); })();
+  function lplace(t){ var o = LOFF[t.dataset.lid]; if (t.__t0 === undefined) t.__t0 = t.getAttribute("transform") || "";
+    var tr = (o ? "translate(" + o[0] + " " + o[1] + ") " : "") + t.__t0; if (tr.trim()) t.setAttribute("transform", tr.trim()); else t.removeAttribute("transform");
+    if (t.__lead && t.__dot){ var x = +t.getAttribute("x") + (o ? o[0] : 0), y = +t.getAttribute("y") + (o ? o[1] : 0), up = y < t.__dot[1]; t.__lead.setAttribute("d", "M" + t.__dot[0] + " " + t.__dot[1] + " L" + x + " " + (y + (up ? 1 : -3.6))); } }
+  svg.querySelectorAll("text[data-lid]").forEach(lplace);
+  svg.addEventListener("pointerdown", function(e){ if (!EDIT || !WMODE) return; var t = e.target.closest && e.target.closest("text[data-lid]"); if (!t) return;
+    e.stopPropagation(); e.preventDefault(); ldrag = { t: t, x: e.clientX, y: e.clientY }; t.style.opacity = ".6"; }, true);
+  window.addEventListener("pointermove", function(e){ if (!ldrag) return; var id = ldrag.t.dataset.lid, o = (LOFF[id] || [0, 0]).slice(); o[0] = Math.round((o[0] + (e.clientX - ldrag.x) * v.s) * 10) / 10; o[1] = Math.round((o[1] + (e.clientY - ldrag.y) * v.s) * 10) / 10; LOFF[id] = o; ldrag.x = e.clientX; ldrag.y = e.clientY; lplace(ldrag.t); });
+  window.addEventListener("pointerup", function(){ if (!ldrag) return; ldrag.t.style.opacity = ""; ldrag = null; try{ localStorage.setItem("ymap-loff", JSON.stringify({ v: 1, off: LOFF })); }catch(_){} });
   function copyPos(){
     var out = {}; Object.keys(OFF).forEach(function(k){ var o = OFF[k]; if (Math.abs(o[0]) + Math.abs(o[1]) > 0.5) out[k] = [Math.round(o[0]), Math.round(o[1])]; });
     if (JSON.stringify(RD) !== JSON.stringify(RD_BAKED)) out._roads = RD;
+    var lw = {}; Object.keys(LOFF).forEach(function(k){ var o = LOFF[k]; if (Math.abs(o[0]) + Math.abs(o[1]) > 0.3) lw[k] = [Math.round(o[0] * 10) / 10, Math.round(o[1] * 10) / 10]; }); if (Object.keys(lw).length) out._words = lw;
     var txt = "Yard map moves: " + JSON.stringify(out); outBox.value = txt; outBox.hidden = false; outBox.select();
     try{ navigator.clipboard.writeText(txt).then(function(){ askText.textContent = "Copied — paste it to Claude"; }, function(){ askText.textContent = "Copy the text below"; }); }catch(_){ askText.textContent = "Copy the text below"; }
   }
