@@ -356,9 +356,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   var BINS = {"bulk-front": [["rr-1-3", 0.07], ["quarry-blend", 0.2], ["concrete-sand", 0.33], ["dga", 0.46], ["gray-34", 0.62], ["rr-15", 0.8], ["rr-34", 0.93]], "more-bulk-top": [["bk-rr-48", 0], ["bk-white-bar", 1], ["bk-wr-115", 2], ["bk-rice", 3], ["bk-gray-38", 4], ["bk-bar-sand", 5]], "more-bulk-bot": [["bk-red-38", 0], ["bk-red-34", 1], ["bk-yel-38", 2], ["bk-yel-34", 3], ["bk-goose", 4], ["bk-wr-34", 5]]};
   /* v76: bin centers read off Google's zoom-21 picture (map units). Stone #2: far row = reds … ¾ white (3/8 red at the right end);
      office row = River 3–5 (right end) … Bar Sand (left end). Stone #1: River 1–3 at the driveway end … River ¾ at the far end. */
-  var BINPOS = { "bk-red-38": [301.1, 759.7], "bk-red-34": [292.3, 758.2], "bk-yel-38": [283.4, 756.8], "bk-yel-34": [274.8, 755.2], "bk-goose": [265.8, 753.7], "bk-wr-34": [256.7, 752.2],
-    "bk-rr-48": [300.2, 772.6], "bk-white-bar": [291.1, 771.1], "bk-wr-115": [281.9, 769.6], "bk-rice": [273.1, 768], "bk-gray-38": [264.7, 766.6], "bk-bar-sand": [256, 765.2],
-    "rr-1-3": [352.6, 918.8], "quarry-blend": [365.5, 919.6], "concrete-sand": [378.7, 919.6], "dga": [390.5, 920.9], "gray-34": [408.2, 922.7], "rr-15": [424.5, 927.5], "rr-34": [433, 929.1] };
+  var BINPOS = {"bk-red-38": [299.3, 760.8], "bk-red-34": [290.7, 759.3], "bk-yel-38": [282, 757.8], "bk-yel-34": [273, 756.2], "bk-goose": [264.1, 754.6], "bk-wr-34": [255.4, 753.1], "bk-rr-48": [297, 773.3], "bk-white-bar": [288.4, 771.8], "bk-wr-115": [279.7, 770.3], "bk-rice": [270.7, 768.7], "bk-gray-38": [261.8, 767.1], "bk-bar-sand": [253.1, 765.6], "rr-1-3": [354.9, 915.1], "quarry-blend": [366.3, 919.7], "concrete-sand": [379.6, 919.2], "dga": [391.6, 921], "gray-34": [409.3, 922.9], "rr-15": [425.1, 927.5], "rr-34": [435.4, 929.3]};   /* v79: re-read at zoom 21, the middle of each bin */
   Object.keys(BINPOS).forEach(function(id){ if (BY[id]) BY[id].bin = BINPOS[id]; });
 
   /* routes: points from the front lot (you are at the counter), with a step on the points that change direction */
