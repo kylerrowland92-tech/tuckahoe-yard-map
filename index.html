@@ -42,7 +42,7 @@ svg.photo .draw{display:none}
 /* v70 (Kyle 6:58 PM): the roads in blue over the photo */
 svg.photo .roadg{display:none}
 svg:not(.photo) .asph{display:none}
-svg.photo:not(.editing) #route{display:none}   /* v77: just the red dot on the satellite, no dotted line */
+
 svg.photo.editing .roadg{display:inline}
 svg.photo .roadg .re{display:none}
 svg.photo .roadg .rr{stroke:#2f8fe6;stroke-opacity:.6;stroke-width:9}
@@ -62,7 +62,11 @@ svg.photo .pshape .pl{fill-opacity:1 !important;stroke-opacity:1 !important}
 svg.photo .lbl{stroke:#111;stroke-width:3.4px}
 svg:not(.photo) .photolayer,svg:not(.photo) .phcredit{display:none}
 .binlead{stroke:#ffd400;stroke-width:.4;fill:none}
-svg.editing .binlbl,svg.editing .bindot,svg.editing .binlead{display:inline !important}
+.dotbar{position:fixed;left:8px;bottom:8px;z-index:40;max-width:300px;background:#1d1b18;color:#f1eadc;border:2px solid #e8261b;border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;font:13px/1.35 system-ui,sans-serif}
+.dotbar b{color:#ff6a5e}.dotbar button{min-height:36px;font-weight:800;border-radius:8px;border:0;background:#e8261b;color:#fff}.dotbar textarea{width:100%;font-size:11px}
+svg.dotmode .youhere circle,svg.dotmode circle.youhere,svg.dotmode .pulse{cursor:move}
+svg.dotmode .youhere circle{r:9px}
+svg.dotmode circle.youhere,svg.dotmode g.youhere circle{pointer-events:auto}
 svg.editing .bindot{r:2.6px;cursor:move}
 svg:not(.near) .binlead{display:none}
 .binlbl{font-family:var(--f-sign);font-weight:700;font-size:calc(11px * var(--k, 1));stroke-width:calc(3px * var(--k, 1)) !important;fill:#fff;paint-order:stroke;stroke:#111;stroke-width:1.3px;text-anchor:middle}
@@ -210,10 +214,11 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
       .then(function(r){ if (!r.ok) throw new Error("session " + r.status); return r.json(); })
       .then(function(j){ try{ localStorage.setItem("ymap-gsess", JSON.stringify({ k: GKEY, s: j.session, exp: Number(j.expiry) * 1000 || Date.now() + 864e5 })); }catch(_){} return j.session; }); }
   function zres(z){ return 156543.033928 / Math.pow(2, z); }
+  var PHSHIFT = [5.5, -17.65];   /* v83: where the photo sat at zoom 18–20 when Kyle lined everything up — now the same at every zoom */
   function m2px(nx, ny, z){ var ax = AW - ny, ay = nx, mx = GEO.a * ax + GEO.b * ay + GEO.tx, my = GEO.b * ax - GEO.a * ay + GEO.ty, r = zres(z); return [(mx + ORIG) / r, (ORIG - my) / r]; }
   function photoLevel(z){ if (photoTiles["g" + z]) return photoTiles["g" + z];
     var r = zres(z), k = GEO.a * GEO.a + GEO.b * GEO.b, o = m2px(0, 0, z), A = r * GEO.b / k, C = r * GEO.a / k, B = -r * GEO.a / k, D = r * GEO.b / k;
-    var g = el("g", { transform: "matrix(" + [A, B, C, D, -(A * o[0] + C * o[1]), -(B * o[0] + D * o[1])].map(function(n){ return +n.toFixed(6); }).join(" ") + ")" }, photoG);
+    var g = el("g", { transform: "matrix(" + [A, B, C, D, -(A * o[0] + C * o[1]) + PHSHIFT[0], -(B * o[0] + D * o[1]) + PHSHIFT[1]].join(" ") + ")" }, photoG);   /* v83: exact (no rounding) */
     photoTiles["g" + z] = g; return g; }
   function photoOff(a){ if (window.photoOff) window.photoOff(a); }
   function photoArea(x0, y0, x1, y1, z, max){
@@ -241,7 +246,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   var roadStyle = { fill: "none", stroke: "var(--road)", "stroke-width": 18, "stroke-linecap": "round", "stroke-linejoin": "round" };
   var edge = { fill: "none", stroke: "var(--road-edge)", "stroke-width": 20, "stroke-linecap": "round", "stroke-linejoin": "round" };
   /* v67 (Kyle 11/17 5:37 PM, Armando's aerial): the roads traced off the aerial. Kyle can still bend them in Move mode (white dots). */
-  var RD_BAKED = {"main": [[317.2, 993.8], [318.5, 993], [325.1, 927.9], [319, 849.8], [319.1, 801.3], [322.2, 752], [330.8, 694.4], [337.9, 652.1], [345.6, 589.9], [350.3, 555], [356.1, 523], [378.6, 448], [350, 346], [330, 286], [296, 246], [292, 231]], "rec": [[316, 849.8], [272, 821.5], [253, 798.7], [238.3, 751.9], [226.9, 706], [209.8, 631.5], [189.4, 616.4], [163, 611.1], [136.5, 637.3], [120.6, 645.4], [116.8, 648.3]], "cross": [[234.3, 924.9], [233.6, 924.2], [234.5, 924.5]], "back": [[330, 286], [272, 294], [218, 296]], "south": [[358.7, 523.2], [365.6, 498.2], [440.4, 511.1], [567.9, 544.5], [569.1, 547], [637.3, 571.5]], "mill": [[568.6, 543.7], [585, 516], [610, 461]], "ring": [[90.8, 658.4]]};   /* v78: Kyle's road bends, 11/17 8:52 PM (map units) */
+  var RD_BAKED = {"main": [[317.2, 993.8], [318.5, 993], [325.1, 927.9], [319, 849.8], [319.1, 801.3], [322.2, 752], [330.8, 694.4], [337.9, 652.1], [345.6, 589.9], [350.3, 555], [356.1, 523], [378.6, 448], [389.2, 356.7], [371.5, 271.5], [349.4, 256], [306.8, 218.5], [283.9, 148.1], [307.6, 219.5]], "rec": [[316, 849.8], [272, 821.5], [253, 798.7], [238.3, 751.9], [226.9, 706], [209.8, 631.5], [189.4, 616.4], [163, 611.1], [136.5, 637.3], [120.6, 645.4], [116.8, 648.3]], "cross": [[234.3, 924.9], [233.6, 924.2], [234.5, 924.5]], "back": [[309.7, 222.5], [222.9, 262.6], [262.7, 244.8], [200.9, 271.7], [174.7, 218.6]], "south": [[358.7, 523.2], [365.6, 498.2], [440.4, 511.1], [567.9, 544.5], [569.1, 547], [637.3, 571.5]], "mill": [[568.6, 543.7], [585, 516], [610, 461]], "ring": [[90.8, 658.4]]};   /* v83: Kyle 9:21 PM — back section to the top */   /* v78: Kyle's road bends, 11/17 8:52 PM (map units) */
   var RD = JSON.parse(JSON.stringify(RD_BAKED));
   try{ var myRd = JSON.parse(localStorage.getItem("ymap-roads") || "null"); if (myRd && myRd.v === 3 && myRd.rd && myRd.rd.main && myRd.rd.rec) RD = myRd.rd; }catch(_){}
   var LOT = { fill: "#4a453d", stroke: "#5b554b", "stroke-width": 1.2, "stroke-linejoin": "round" };
@@ -279,13 +284,13 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
     { id: "bagged", name: "Bagged mulch & soil", k: "x", r: [0, 0, 1, 1], label: "Bagged goods out front", hide: true },   /* Kyle 11/16 10:48 PM: not needed on the map */
     { id: "container-yard", name: "Container yard", k: "x", r: TB(130, 245, 182, 294), label: " " },
     { id: "propane", name: "Propane fuel tank station", k: "x", r: [0, 0, 16, 16], label: " ", propane: true },   /* Kyle 11/16: behind the containers, next to number 5 (placed beside the container yard below) */
-    { id: "rr-1-3", name: "River rock 1–3\" — Stone #1", short: "River rock 1–3\"", hide: true, at: "bulk-front", where: "in the Stone #1 bins" },
-    { id: "quarry-blend", name: "Quarry blend — Stone #1", short: "Quarry blend", hide: true, at: "bulk-front", where: "in the Stone #1 bins" },
-    { id: "concrete-sand", name: "Concrete sand — Stone #1", short: "Concrete sand", hide: true, at: "bulk-front", where: "in the Stone #1 bins" },
-    { id: "dga", name: "DGA — Stone #1", short: "DGA", hide: true, at: "bulk-front", where: "in the Stone #1 bins" },
-    { id: "gray-34", name: "Gray stone ¾\" — Stone #1", short: "Gray stone ¾\"", hide: true, at: "bulk-front", where: "in the Stone #1 bins" },
-    { id: "rr-15", name: "River rock 1½\" — Stone #1", short: "River rock 1½\"", hide: true, at: "bulk-front", where: "in the Stone #1 bins" },
-    { id: "rr-34", name: "River rock ¾\" — Stone #1", short: "River rock ¾\"", hide: true, at: "bulk-front", where: "in the Stone #1 bins" },
+    { id: "rr-1-3", name: "River rock 1–3\" — Stone #1", short: "River rock 1–3\"", hide: true, at: "bulk-front", where: "in the Stone #1 bins — bin 1 from the right as you face the bins (facing Tuckahoe Road)", binNo: 1 },
+    { id: "quarry-blend", name: "Quarry blend — Stone #1", short: "Quarry blend", hide: true, at: "bulk-front", where: "in the Stone #1 bins — bin 2 from the right as you face the bins (facing Tuckahoe Road)", binNo: 2 },
+    { id: "concrete-sand", name: "Concrete sand — Stone #1", short: "Concrete sand", hide: true, at: "bulk-front", where: "in the Stone #1 bins — bin 3 from the right as you face the bins (facing Tuckahoe Road)", binNo: 3 },
+    { id: "dga", name: "DGA — Stone #1", short: "DGA", hide: true, at: "bulk-front", where: "in the Stone #1 bins — bin 4 from the right as you face the bins (facing Tuckahoe Road)", binNo: 4 },
+    { id: "gray-34", name: "Gray stone ¾\" — Stone #1", short: "Gray stone ¾\"", hide: true, at: "bulk-front", where: "in the Stone #1 bins — bin 5 from the right as you face the bins (facing Tuckahoe Road)", binNo: 5 },
+    { id: "rr-15", name: "River rock 1½\" — Stone #1", short: "River rock 1½\"", hide: true, at: "bulk-front", where: "in the Stone #1 bins — bin 6 from the right as you face the bins (facing Tuckahoe Road)", binNo: 6 },
+    { id: "rr-34", name: "River rock ¾\" — Stone #1", short: "River rock ¾\"", hide: true, at: "bulk-front", where: "in the Stone #1 bins — bin 7 from the right as you face the bins (facing Tuckahoe Road)", binNo: 7 },
     { id: "infield", name: "Infield mix — front bulk bins", short: "Infield mix", hide: true, at: "bulk-front", where: "in the Stone #1 bins" },   /* not on Armando's Stone #1 list — left out of the buttons until Kyle says */
     { id: "bk-red-38", name: "Red crushed ⅜\" (driveway stone) — Stone #2", short: "Red crushed ⅜\"", hide: true, at: "more-bulk", where: "in the Stone #2 bins" },
     { id: "bk-red-34", name: "Red crushed ¾\" (driveway stone) — Stone #2", short: "Red crushed ¾\"", hide: true, at: "more-bulk", where: "in the Stone #2 bins" },
@@ -355,7 +360,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   var BINS = {"bulk-front": [["rr-1-3", 0.07], ["quarry-blend", 0.2], ["concrete-sand", 0.33], ["dga", 0.46], ["gray-34", 0.62], ["rr-15", 0.8], ["rr-34", 0.93]], "more-bulk-top": [["bk-rr-48", 0], ["bk-white-bar", 1], ["bk-wr-115", 2], ["bk-rice", 3], ["bk-gray-38", 4], ["bk-bar-sand", 5]], "more-bulk-bot": [["bk-red-38", 0], ["bk-red-34", 1], ["bk-yel-38", 2], ["bk-yel-34", 3], ["bk-goose", 4], ["bk-wr-34", 5]]};
   /* v76: bin centers read off Google's zoom-21 picture (map units). Stone #2: far row = reds … ¾ white (3/8 red at the right end);
      office row = River 3–5 (right end) … Bar Sand (left end). Stone #1: River 1–3 at the driveway end … River ¾ at the far end. */
-  var BINPOS = {"bk-red-38": [299.3, 760.8], "bk-red-34": [290.7, 759.3], "bk-yel-38": [282, 757.8], "bk-yel-34": [273, 756.2], "bk-goose": [264.1, 754.6], "bk-wr-34": [255.4, 753.1], "bk-rr-48": [297, 773.3], "bk-white-bar": [288.4, 771.8], "bk-wr-115": [279.7, 770.3], "bk-rice": [270.7, 768.7], "bk-gray-38": [261.8, 767.1], "bk-bar-sand": [253.1, 765.6], "rr-1-3": [354.9, 915.1], "quarry-blend": [366.3, 919.7], "concrete-sand": [379.6, 919.2], "dga": [391.6, 921], "gray-34": [409.3, 922.9], "rr-15": [425.1, 927.5], "rr-34": [435.4, 929.3]};   /* v79: re-read at zoom 21, the middle of each bin */
+  var BINPOS = {"bk-red-38": [305.1, 745.5], "bk-red-34": [295.6, 744.2], "bk-yel-38": [286.4, 742.5], "bk-yel-34": [275.9, 740.8], "bk-goose": [267.7, 740.2], "bk-wr-34": [259.0, 738.3], "bk-rr-48": [303.5, 756.0], "bk-white-bar": [293.7, 754.6], "bk-wr-115": [283.6, 753.5], "bk-rice": [275.0, 751.9], "bk-gray-38": [265.6, 750.7], "bk-bar-sand": [257.3, 748.8], "rr-1-3": [354.9, 907.0], "quarry-blend": [369.2, 905.7], "concrete-sand": [382.5, 905.2], "dga": [393.5, 905.1], "gray-34": [409.5, 905.4], "rr-15": [444.6, 915.7], "rr-34": [456.0, 917.6]};   /* v83: Kyle's bin spots (9:08 PM) */   /* v79: re-read at zoom 21, the middle of each bin */
   Object.keys(BINPOS).forEach(function(id){ if (BY[id]) BY[id].bin = BINPOS[id]; });
 
   /* routes: points from the front lot (you are at the counter), with a step on the points that change direction */
@@ -699,7 +704,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
      Moves are kept on this phone/computer only; "Copy positions" gives the list to paste to Claude, who builds them into the map
      for everyone. Customers never see this. ---------- */
   /* Kyle's own placements (Move piles, 11/16 8:18 PM), built in for everyone */
-  var BAKED = {"office": [12, -4], "paver-display": [15, 33], "nicolock": [-5, -106], "fert": [35, 0], "receiving": [18, -34], "container-yard": [34, 28], "propane": [16, 33], "pallets": [3, -8], "more-bulk": [8, -52], "trucks": [14, -40], "techo": [-16, -13], "black-mulch": [9, -49], "playground-mulch": [22, -37], "red-mulch": [17, -35], "brown-mulch": [-5, -27], "cedar-mulch": [28, -22], "root-mulch": [14, -23], "back-gate": [-2, 52], "wood-chips": [28, 16], "hill": [38, -8], "hoop-house": [22, -19], "wood-waste": [-33, -30], "logs": [-20, -6], "grass": [52, -46], "cornfield": [40, 1], "topsoil": [-8, -65], "screener": [28, -8], "leaves": [24, -28], "windrow-5": [50, 11], "water": [-20, -92], "tanks": [-6, 11], "ep-henry": [16, -92], "bulk-front": [12, -31], "fill-dirt": [22, -71]};   /* v82: Kyle's Move-mode positions, 11/17 9:08 PM */
+  var BAKED = {"office": [12, -4], "paver-display": [15, 33], "nicolock": [-5, -106], "fert": [35, 0], "receiving": [18, -34], "container-yard": [34, 28], "propane": [16, 33], "pallets": [3, -8], "more-bulk": [8, -52], "trucks": [14, -40], "techo": [-16, -13], "black-mulch": [9, -49], "playground-mulch": [22, -37], "red-mulch": [17, -35], "brown-mulch": [-5, -27], "cedar-mulch": [28, -22], "root-mulch": [14, -23], "back-gate": [-2, 52], "wood-chips": [28, 16], "hill": [38, -8], "hoop-house": [21, -6], "wood-waste": [-33, -30], "logs": [-20, -6], "grass": [52, -46], "cornfield": [40, 1], "topsoil": [-8, -65], "screener": [18, -26], "leaves": [24, -28], "windrow-5": [50, 11], "water": [-20, -92], "tanks": [-6, 11], "ep-henry": [16, -92], "bulk-front": [12, -31], "fill-dirt": [22, -71], "compost": [25, -63], "mushroom-soil": [-1, -76]};   /* v83: Kyle's Move-mode positions, 11/17 9:21 PM */
   var OFF = JSON.parse(JSON.stringify(BAKED)); try{ var mine = JSON.parse(localStorage.getItem("ymap-off") || "null"); if (mine && mine.v === 3) OFF = mine.off; }catch(_){}
   function offOf(id){ return OFF[id] || [0, 0]; }
   function place(id){ var o = offOf(id); svg.querySelectorAll('[data-id="' + id + '"],[data-follow="' + id + '"]').forEach(function(g){ g.setAttribute("transform", "translate(" + o[0] + " " + o[1] + ")"); }); }
@@ -833,8 +838,8 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   var outBox = document.createElement("textarea"); outBox.hidden = true; outBox.rows = 3; outBox.readOnly = true; outBox.style.cssText = "width:100%;box-sizing:border-box;font-size:12px;margin-top:6px";
   /* v70 (Kyle 6:58 PM): every name can be dragged on its own in Move mode ("Move words"); moves stay on this device until Kyle
      taps Copy positions and Claude builds them in for everyone (LBAKED). */
-  var LBAKED = {"nicolock:0": [16.1, -7.8], "hoop-house:0": [-3.6, -40.4], "hill:0": [30.5, -31.2], "wood-chips:0": [-26.2, -20.7], "back-gate:0": [25.5, -48.9], "pallets:0": [3.8, -27.1], "fert:0": [8.2, -13.5], "receiving:0": [5.2, -14.2], "techo:0": [15.6, -8.8], "office:0": [5, -17.5], "paver-display:0": [19.5, -36], "leaves:0": [4.3, -0.2], "ep-henry:0": [-3.8, 42.2], "t3": [-11.7, -53.3], "t5": [-91.5, -23], "t4": [89.9, -54.2], "trucks:5": [-13.8, 1.6], "container-yard:10": [-0.6, -8.8], "propane:0": [21.2, -50.5], "fert:1": [-12.7, -14.3], "fert:2": [-9, -11.5]}, LOFF = JSON.parse(JSON.stringify(LBAKED)), WMODE = false, ldrag = null;
-  try{ var ml = JSON.parse(localStorage.getItem("ymap-loff") || "null"); if (ml && ml.v === 1) LOFF = ml.off; }catch(_){}
+  var LBAKED = {"nicolock:0": [16.1, -7.8], "hoop-house:0": [-3.6, -40.4], "hill:0": [30.5, -31.2], "wood-chips:0": [-26.2, -20.7], "back-gate:0": [25.5, -48.9], "pallets:0": [3.8, -27.1], "fert:0": [8.2, -13.5], "receiving:0": [5.2, -14.2], "techo:0": [15.6, -8.8], "office:0": [5, -17.5], "paver-display:0": [19.5, -36], "shipping:0": [432.6, -86.5], "leaves:0": [4.3, -0.2], "ep-henry:0": [-3.8, 42.2], "t3": [-11.7, -53.3], "t5": [-91.5, -23], "t4": [89.9, -54.2], "trucks:5": [-13.8, 1.6], "container-yard:10": [-0.6, -8.8], "propane:0": [21.2, -50.5], "fert:1": [-12.7, -14.3], "fert:2": [-9, -11.5], "more-bulk:0": [11, 20.1], "bin:bk-wr-34": [4.1, 14.4], "bin:bk-goose": [2.0, 16.8], "bin:bk-yel-34": [5.2, 5.1], "bin:bk-yel-38": [3.3, 5.8], "bin:bk-red-34": [5.2, -4.5], "bin:bk-red-38": [3.4, -3.0], "bin:bk-bar-sand": [-1.5, -27.0], "bin:bk-gray-38": [-0.3, -27.1], "bin:bk-rice": [-0.8, -15.2], "bin:bk-wr-115": [-1.5, -12.6], "bin:bk-white-bar": [0.3, -0.9], "bin:bk-rr-48": [1.1, 0.9], "bin:rr-1-3": [1.7, 59.9], "bin:quarry-blend": [0.7, 15.2], "bin:concrete-sand": [1.8, 48.2], "bin:dga": [0.0, 0.9], "bin:gray-34": [0.7, 1.2], "bin:rr-15": [2.1, 43.5], "bin:rr-34": [0.3, 2.5]}, LOFF = JSON.parse(JSON.stringify(LBAKED)), WMODE = false, ldrag = null;
+  try{ var ml = JSON.parse(localStorage.getItem("ymap-loff") || "null"); if (ml && ml.v === 2) LOFF = ml.off; else if (ml && ml.v === 1 && !localStorage.getItem("ymap-loff-old")) localStorage.setItem("ymap-loff-old", JSON.stringify(ml.off)); }catch(_){}
   (function(){ var n = 0; svg.querySelectorAll("text").forEach(function(t){ if (t.dataset.lid || t.closest(".handles,.youhere") || t.classList.contains("flag") || t.classList.contains("phcredit")) return;
     var g = t.closest("[data-id]"); t.dataset.lid = g ? g.dataset.id + ":" + Array.prototype.indexOf.call(g.querySelectorAll("text"), t) : "t" + (n++); }); })();
   function lplace(t){ var o = LOFF[t.dataset.lid]; if (t.__t0 === undefined) t.__t0 = t.getAttribute("transform") || "";
@@ -849,15 +854,36 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   svg.addEventListener("pointerdown", function(e){ if (!EDIT || !WMODE) return; var c = e.target.closest && e.target.closest("circle[data-dot]"); if (!c) return;
     e.stopPropagation(); e.preventDefault(); ddrag = { id: c.dataset.dot, x: e.clientX, y: e.clientY }; }, true);
   window.addEventListener("pointermove", function(e){ if (!ddrag) return; var k = "dot:" + ddrag.id, o = (LOFF[k] || [0, 0]).slice(); o[0] += (e.clientX - ddrag.x) * v.s; o[1] += (e.clientY - ddrag.y) * v.s; LOFF[k] = o; ddrag.x = e.clientX; ddrag.y = e.clientY; dplace(ddrag.id); });
-  window.addEventListener("pointerup", function(){ if (!ddrag) return; ddrag = null; try{ localStorage.setItem("ymap-loff", JSON.stringify({ v: 1, off: LOFF })); }catch(_){} });
+  window.addEventListener("pointerup", function(){ if (!ddrag) return; ddrag = null; try{ localStorage.setItem("ymap-loff", JSON.stringify({ v: 2, off: LOFF })); }catch(_){} });
   svg.addEventListener("pointerdown", function(e){ if (!EDIT || !WMODE) return; var t = e.target.closest && e.target.closest("text[data-lid]"); if (!t) return;
     e.stopPropagation(); e.preventDefault(); ldrag = { t: t, x: e.clientX, y: e.clientY }; t.style.opacity = ".6"; }, true);
   window.addEventListener("pointermove", function(e){ if (!ldrag) return; var id = ldrag.t.dataset.lid, o = (LOFF[id] || [0, 0]).slice(); o[0] = Math.round((o[0] + (e.clientX - ldrag.x) * v.s) * 10) / 10; o[1] = Math.round((o[1] + (e.clientY - ldrag.y) * v.s) * 10) / 10; LOFF[id] = o; ldrag.x = e.clientX; ldrag.y = e.clientY; lplace(ldrag.t); });
-  window.addEventListener("pointerup", function(){ if (!ldrag) return; ldrag.t.style.opacity = ""; ldrag = null; try{ localStorage.setItem("ymap-loff", JSON.stringify({ v: 1, off: LOFF })); }catch(_){} });
+  window.addEventListener("pointerup", function(){ if (!ldrag) return; ldrag.t.style.opacity = ""; ldrag = null; try{ localStorage.setItem("ymap-loff", JSON.stringify({ v: 2, off: LOFF })); }catch(_){} });
+  /* v83 (Kyle 9:12 PM): every destination's red dot can be put on the exact spot — open the map with #dots, tap a place like a
+     customer, drag the red dot; drag "You are here" too. Saved as "end:<id>" / "here"; Copy red-dot spots gives them to Claude. */
+  var DOTMODE = /#dots|[?&]dots\b/.test(location.hash + location.search), curDest = null, edrag = null;
+  function endFix(id){ var o = LOFF["end:" + id]; if (!o) return; var ex = +dot.getAttribute("cx") + o[0], ey = +dot.getAttribute("cy") + o[1];
+    dot.setAttribute("cx", ex); dot.setAttribute("cy", ey); pulse.setAttribute("cx", ex); pulse.setAttribute("cy", ey); flag.setAttribute("x", Math.min(FULL.x + FULL.w - 50, Math.max(FULL.x + 50, ex))); flag.setAttribute("y", ey - 14);
+    var d = route.getAttribute("d") || ""; route.setAttribute("d", d.replace(/L\s*[-\d.]+\s+[-\d.]+\s*$/, "L" + ex + " " + ey)); }
+  var go0 = go; go = function(id){ go0(id); curDest = id; try{ endFix(id); }catch(_){} };
+  (function(){ var o = LOFF.here; if (o) here.setAttribute("transform", "translate(" + o[0] + " " + o[1] + ")"); })();
+  if (DOTMODE){
+    svg.classList.add("dotmode");
+    var dbar = document.createElement("div"); dbar.className = "dotbar"; dbar.innerHTML = '<b>Red-dot mode</b><span>Tap a place, then drag its red dot to the exact spot. Drag the You-are-here dot too.</span><button type="button" id="dotCopy">📋 Copy red-dot spots</button><textarea id="dotOut" rows="3" readonly hidden></textarea>';
+    document.body.appendChild(dbar);
+    document.getElementById("dotCopy").addEventListener("click", function(){ copyPos(); var t = document.getElementById("dotOut"); t.value = outBox.value; t.hidden = false; t.select(); });
+    svg.addEventListener("pointerdown", function(e){ var t = e.target; if (t === dot || t === pulse){ if (!curDest) return; e.stopPropagation(); e.preventDefault(); edrag = { k: "end:" + curDest, x: e.clientX, y: e.clientY }; }
+      else if (t.closest && t.closest(".youhere") && t.tagName === "circle"){ e.stopPropagation(); e.preventDefault(); edrag = { k: "here", x: e.clientX, y: e.clientY }; } }, true);
+    window.addEventListener("pointermove", function(e){ if (!edrag) return; var dx = (e.clientX - edrag.x) * v.s, dy = (e.clientY - edrag.y) * v.s, o = (LOFF[edrag.k] || [0, 0]).slice(); o[0] = Math.round((o[0] + dx) * 10) / 10; o[1] = Math.round((o[1] + dy) * 10) / 10; LOFF[edrag.k] = o; edrag.x = e.clientX; edrag.y = e.clientY;
+      if (edrag.k === "here") here.setAttribute("transform", "translate(" + o[0] + " " + o[1] + ")");
+      else { var ex = +dot.getAttribute("cx") + dx, ey = +dot.getAttribute("cy") + dy; dot.setAttribute("cx", ex); dot.setAttribute("cy", ey); pulse.setAttribute("cx", ex); pulse.setAttribute("cy", ey); flag.setAttribute("x", ex); flag.setAttribute("y", ey - 14); var d = route.getAttribute("d") || ""; route.setAttribute("d", d.replace(/L\s*[-\d.]+\s+[-\d.]+\s*$/, "L" + ex + " " + ey)); } });
+    window.addEventListener("pointerup", function(){ if (!edrag) return; edrag = null; try{ localStorage.setItem("ymap-loff", JSON.stringify({ v: 2, off: LOFF })); }catch(_){} });
+  }
   function copyPos(){
     var out = {}; Object.keys(OFF).forEach(function(k){ var o = OFF[k]; if (Math.abs(o[0]) + Math.abs(o[1]) > 0.5) out[k] = [Math.round(o[0]), Math.round(o[1])]; });
     if (JSON.stringify(RD) !== JSON.stringify(RD_BAKED)) out._roads = RD;
     var lw = {}; Object.keys(LOFF).forEach(function(k){ var o = LOFF[k]; if (Math.abs(o[0]) + Math.abs(o[1]) > 0.3) lw[k] = [Math.round(o[0] * 10) / 10, Math.round(o[1] * 10) / 10]; }); if (Object.keys(lw).length) out._words = lw;
+    try{ var od = JSON.parse(localStorage.getItem("ymap-loff-old") || "null"); if (od) out._oldWords = od; }catch(_){}
     var txt = "Yard map moves: " + JSON.stringify(out); outBox.value = txt; outBox.hidden = false; outBox.select();
     try{ navigator.clipboard.writeText(txt).then(function(){ askText.textContent = "Copied — paste it to Claude"; }, function(){ askText.textContent = "Copy the text below"; }); }catch(_){ askText.textContent = "Copy the text below"; }
   }
@@ -970,6 +996,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
       if ((m = s.match(/^When it’s level with you, turn (left|right) — (.+) (is|are) right there\.$/))) return "Cuando quede a su altura, gire a la " + SIDE[m[1]] + ": " + (m[2] === "the bulk bins" ? "los compartimentos a granel están" : (m[2] === "the Fertilizer Building" ? "el Edificio de fertilizantes está" : nm(m[2]) + " está")) + " ahí mismo.";
       if ((m = s.match(/^(.+) is the (\w+) pile on your (left|right)(?:, right after (.+?))?\.(?: (.+) is across from it\.)?$/))) return nm(m[1]) + " es el " + (ORD[m[2]] || m[2]) + " montón a su " + SIDE[m[3]] + (m[4] ? ", justo después de " + side(m[4]) : "").replace("después de el ", "después del ") + "." + (m[5] ? " Enfrente está el " + nm(m[5]) + "." : "");
       if ((m = s.match(/^(.+) is in the Stone #(1|2) bins \(the red dot\)\. The map doesn’t show which bin — check the bin signs or ask at the office\.$/))) return nm(m[1]) + " está en los compartimentos de Piedra #" + m[2] + " (el punto rojo). El mapa no indica cuál compartimento: revise los letreros o pregunte en la oficina.";
+      if ((m = s.match(/^(.+) is the bin at the red dot, in the Stone #(1|2) bins — bin (\d+) from the right as you face the bins \(facing Tuckahoe Road\)\. Check the bin sign before you load\.$/))) return nm(m[1]) + " es el compartimento del punto rojo, en los compartimentos de Piedra #" + m[2] + ": el compartimento " + m[3] + " contando desde la derecha, de frente a los compartimentos (mirando hacia Tuckahoe Road). Revise el letrero del compartimento antes de cargar.";
       if ((m = s.match(/^(.+) is the bin at the red dot, in the Stone #(1|2) bins\. Check the bin sign before you load\.$/))) return nm(m[1]) + " es el compartimento del punto rojo, en los compartimentos de Piedra #" + m[2] + ". Revise el letrero del compartimento antes de cargar.";
       if ((m = s.match(/^(.+) is in the Fertilizer Building \(the red dot\)\.$/))) return nm(m[1]) + " está en el Edificio de fertilizantes (el punto rojo).";
       if ((m = s.match(/^(.+) is at the red dot\.$/))) return (EX[m[1].toLowerCase()] || nm(m[1])) + " está en el punto rojo.";
@@ -1019,7 +1046,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   (function(){
     var LIMIT = 15 * 60 * 1000, K = "ymap-open";
     if (!/github\.io$/.test(location.hostname) && !/[?&]expiretest=1\b/.test(location.search)) return;
-    if (/[?&]edit\b|#edit/.test(location.search + location.hash)) return;
+    if (/[?&]edit\b|#edit|#dots|[?&]dots\b/.test(location.search + location.hash)) return;
     var box = document.getElementById("expired"), okStore = true, t0 = null;
     function expire(){ if (!box.hidden) return; box.hidden = false; var a = document.querySelector(".app"); if (a) a.remove(); var q = document.getElementById("qr"); if (q) q.remove(); }
     try{ t0 = Number(sessionStorage.getItem(K)) || null; sessionStorage.setItem(K + "-t", "1"); }catch(_){ okStore = false; }
