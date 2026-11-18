@@ -935,7 +935,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   var qr = document.getElementById("qr");
   document.getElementById("qrOpen").addEventListener("click", function(){
     qr.hidden = false; var box = document.getElementById("qrImg");
-    if (!box.firstChild){ try{ var c = qrcode(0, "M"); c.addData("https://claude.ai/artifact/5X79UEZr4kpw66n4fDFemN"); c.make(); box.innerHTML = c.createSvgTag({ cellSize: 6, margin: 2, scalable: true }); }
+    if (!box.firstChild){ try{ var c = qrcode(0, "M"); c.addData("https://kylerrowland92-tech.github.io/tuckahoe-yard-map/"); c.make(); box.innerHTML = c.createSvgTag({ cellSize: 6, margin: 2, scalable: true }); }
       catch(e){ box.textContent = "The QR code didn't load here. In Chrome on a computer, open the shared link and use Share → Create QR code."; } }
   });
   document.getElementById("qrClose").addEventListener("click", function(){ qr.hidden = true; });
