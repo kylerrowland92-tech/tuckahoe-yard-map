@@ -40,6 +40,8 @@ body{background:var(--card);color:var(--ink);font-family:var(--f-body);font-size
 /* v68 photo mode: the real aerial under the map. Drawn piles and buildings turn invisible (still tappable); names stay. */
 svg.photo .draw{display:none}
 /* v70 (Kyle 6:58 PM): the roads in blue over the photo */
+svg.photo .roadg{display:none}
+svg.photo.editing .roadg{display:inline}
 svg.photo .roadg .re{display:none}
 svg.photo .roadg .rr{stroke:#2f8fe6;stroke-opacity:.6;stroke-width:9}
 svg.photo .roadg .rd{stroke:rgba(255,255,255,.55);stroke-width:1.2}
@@ -48,6 +50,9 @@ svg.photo [data-id] .pl{fill-opacity:0 !important;stroke-opacity:0 !important}
 svg.photo [data-id="back-gate"] > *{display:inline}
 svg.photo [data-id="trucks"] text:not(.lbl),svg.photo [data-id="windrow-1"] text,svg.photo [data-id^="windrow"] text{display:none}
 svg.photo .lbl.bl{fill:#ffd400}
+/* v74: the drawn piles over the photo, fading out as you zoom in (--pop set in apply) */
+svg.photo .pshape{display:inline !important;opacity:var(--pop, 1)}
+svg.photo .pshape .pl{fill-opacity:1 !important;stroke-opacity:1 !important}
 svg.photo .lbl{stroke:#111;stroke-width:3.4px}
 svg:not(.photo) .photolayer,svg:not(.photo) .phcredit{display:none}
 .binlead{stroke:#ffd400;stroke-width:.4;fill:none}
@@ -383,9 +388,10 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
       var rr = p.sz || (p.big ? 34 : p.small ? 12 : 20), cx = p.c[0], cy = Y(p.c[1]);
       var PC = { "black-mulch": "#1c1a18", "brown-mulch": "#5e3b22", "red-mulch": "#93321f", "cedar-mulch": "#b98450", "playground-mulch": "#cfa067", "root-mulch": "#4b3020",
         "topsoil": "#3e2c1f", "mushroom-soil": "#4c3b2c", "compost": "#382c21", "fill-dirt": "#8d6b47", "logs": "#6e4a2c", "wood-waste": "#a8773f", "grass": "#5f7d3a", "leaves": "#8a6a2a", "bk-millings": "#2e2e30" }, pc = PC[p.id] || fill;
-      el("ellipse", { cx: cx + 2, cy: cy + rr * .55 + 1.5, rx: rr * 1.05, ry: rr * .22, fill: "#000", opacity: .45 }, g);
-      el("path", { "class": "pl", d: "M" + (cx - rr) + " " + (cy + rr * .55) + " Q" + cx + " " + (cy - rr * 1.25) + " " + (cx + rr) + " " + (cy + rr * .55) + " Z", fill: pc, stroke: "rgba(255,255,255,.22)", "stroke-width": 1 }, g);
-      el("path", { d: "M" + (cx - rr * .55) + " " + (cy + rr * .05) + " Q" + (cx - rr * .1) + " " + (cy - rr * .62) + " " + (cx + rr * .35) + " " + (cy - rr * .2), fill: "none", stroke: "rgba(255,255,255,.25)", "stroke-width": 1.4, "stroke-linecap": "round" }, g);
+      var sg = el("g", { "class": "pshape" }, g);
+      el("ellipse", { cx: cx + 2, cy: cy + rr * .55 + 1.5, rx: rr * 1.05, ry: rr * .22, fill: "#000", opacity: .45 }, sg);
+      el("path", { "class": "pl", d: "M" + (cx - rr) + " " + (cy + rr * .55) + " Q" + cx + " " + (cy - rr * 1.25) + " " + (cx + rr) + " " + (cy + rr * .55) + " Z", fill: pc, stroke: "rgba(255,255,255,.22)", "stroke-width": 1 }, sg);
+      el("path", { d: "M" + (cx - rr * .55) + " " + (cy + rr * .05) + " Q" + (cx - rr * .1) + " " + (cy - rr * .62) + " " + (cx + rr * .35) + " " + (cy - rr * .2), fill: "none", stroke: "rgba(255,255,255,.25)", "stroke-width": 1.4, "stroke-linecap": "round" }, sg);
       var lines = String(name).split(" ");
       var tl = function(yy, s2){ var t0 = el("text", { x: cx, y: yy, "class": "lbl", "text-anchor": "middle" }, g); t0.textContent = s2; };
       if (lines.length > 1 && !p.label && name.length > 9){ tl(cy + rr * .55 + 11, lines[0]); tl(cy + rr * .55 + 22, lines.slice(1).join(" ")); }
@@ -575,6 +581,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
     v.x = Math.min(FULL.x + FULL.w + w * 0.25, Math.max(FULL.x - w * 0.25, v.x)); v.y = Math.min(FULL.y + FULL.h + h * 0.1, Math.max(FULL.y - h * 0.1, v.y));
     svg.setAttribute("viewBox", (v.x - w / 2) + " " + (v.y - h / 2) + " " + w + " " + h);
     svg.style.setProperty("--k", Math.min(2.6, Math.max(1, 1 + (v.s - 1) * 0.7)).toFixed(2));
+    svg.style.setProperty("--pop", Math.max(0, Math.min(1, (v.s - 0.3) / 0.5)).toFixed(2));   /* v74: piles fade between zoom 0.8 and 0.3 */
     svg.classList.toggle("near", v.s < 0.5);   /* v68: bin names show when you zoom in close */
     if (svg.classList.contains("photo") && v.s < 1.6) photoArea(v.x - w / 2, v.y - h / 2, v.x + w / 2, v.y + h / 2, v.s < 0.16 && GSESS ? 21 : v.s < 0.35 && GSESS ? 20 : v.s < 0.75 ? 19 : 18, 60);   /* v69: only the tiles you look at, sharper as you zoom in (keeps Google inside its free tiles) */
     var f = Math.max(14, 17 * v.s);   // the destination name and "You are here" stay readable at any zoom
