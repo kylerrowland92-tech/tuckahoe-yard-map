@@ -519,13 +519,14 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
     var SH = { "rr-1-3": "River 1–3\"", "quarry-blend": "Quarry", "concrete-sand": "Concrete Sand", "dga": "DGA", "gray-34": "¾ Gray", "rr-15": "River 1½\"", "rr-34": "River ¾\"",
       "bk-rr-48": "River 3–5\"", "bk-white-bar": "White Bar", "bk-wr-115": "1½ White", "bk-rice": "Rice", "bk-gray-38": "⅜ Gray", "bk-bar-sand": "Bar Sand",
       "bk-red-38": "⅜ Red", "bk-red-34": "¾ Red", "bk-yel-38": "⅜ Yellow", "bk-yel-34": "¾ Yellow", "bk-goose": "Goose Egg", "bk-wr-34": "¾ White" };
-    var lay = function(list, yFor){ list.forEach(function(b, i){ var p = BY[b[0]]; if (!p || !p.bin) return; var lv = i % 2, ly = yFor(lv);
-      var up = ly < p.bin[1], lead = el("path", { "class": "binlead", d: "M" + p.bin[0] + " " + p.bin[1] + " L" + p.bin[0] + " " + (ly + (up ? 1 : -3.6)) }, bg);
-      el("circle", { "class": "bindot", cx: p.bin[0], cy: p.bin[1], r: 1.6 }, bg);
-      var t = el("text", { "class": "binlbl", x: p.bin[0], y: ly, "data-lid": "bin:" + b[0] }, bg); t.textContent = SH[b[0]] || p.short; t.__lead = lead; t.__dot = p.bin; }); };
-    lay(BINS["bulk-front"], function(lv){ return s1[1] - 4 - lv * 6; });
-    lay(BINS["more-bulk-top"], function(lv){ return s2[1] - 4 - lv * 6; });
-    lay(BINS["more-bulk-bot"], function(lv){ return s2[1] + s2[3] + 7 + lv * 6; }); })();
+    var lay = function(list, yFor, sg){ list.forEach(function(b, i){ var p = BY[b[0]]; if (!p || !p.bin) return; var lv = i % 2, ly = yFor(lv);
+      var up = ly < p.bin[1], lead = el("path", { "class": "binlead", d: "M" + p.bin[0] + " " + p.bin[1] + " L" + p.bin[0] + " " + (ly + (up ? 1 : -3.6)) }, sg);
+      el("circle", { "class": "bindot", cx: p.bin[0], cy: p.bin[1], r: 1.6 }, sg);
+      var t = el("text", { "class": "binlbl", x: p.bin[0], y: ly, "data-lid": "bin:" + b[0] }, sg); t.textContent = SH[b[0]] || p.short; t.__lead = lead; t.__dot = p.bin; }); };
+    var g1 = el("g", { "data-follow": "bulk-front" }, bg), g2 = el("g", { "data-follow": "more-bulk" }, bg);   /* v71: bin names move with their Stone */
+    lay(BINS["bulk-front"], function(lv){ return s1[1] - 4 - lv * 6; }, g1);
+    lay(BINS["more-bulk-top"], function(lv){ return s2[1] - 4 - lv * 6; }, g2);
+    lay(BINS["more-bulk-bot"], function(lv){ return s2[1] + s2[3] + 7 + lv * 6; }, g2); })();
   /* v67: the container yard drawn into its own box — 5 standing side by side toward the office, 4 lying across behind them */
   (function(){ var p = BY["container-yard"], g = svg.querySelector('[data-id="container-yard"]'); if (!g || !p) return; var r = p.r, sx = r[2] / 80, sy = r[3] / 84;
     var gg = el("g", { transform: "translate(" + r[0] + " " + r[1] + ") scale(" + sx.toFixed(3) + " " + sy.toFixed(3) + ")" }, g), cols = ["#4f78a8", "#a8463b", "#a8463b", "#d9dad6", "#4f78a8"];
@@ -680,10 +681,10 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
      Moves are kept on this phone/computer only; "Copy positions" gives the list to paste to Claude, who builds them into the map
      for everyone. Customers never see this. ---------- */
   /* Kyle's own placements (Move piles, 11/16 8:18 PM), built in for everyone */
-  var BAKED = {};   /* v67: the old hand moves were for the sketch; the aerial layout starts clean. Kyle's moves from here on build up again. */
+  var BAKED = {"office": [12, -4], "paver-display": [15, 33], "nicolock": [15, -99], "fert": [35, 0], "receiving": [11, -19], "container-yard": [36, 37], "propane": [16, 33], "pallets": [3, -8], "more-bulk": [8, 24], "trucks": [8, -30], "techo": [-16, -13], "black-mulch": [16, -35], "playground-mulch": [25, -33], "red-mulch": [21, -24], "brown-mulch": [-8, -14], "cedar-mulch": [18, -11], "root-mulch": [13, -19], "back-gate": [-2, 52], "wood-chips": [28, 16], "hill": [38, -8], "hoop-house": [22, -19], "wood-waste": [-33, -30], "logs": [-20, -6], "grass": [-5, -45], "cornfield": [35, -6], "topsoil": [-8, -65], "screener": [28, -8], "leaves": [42, -70], "windrow-5": [60, 8], "water": [-20, -92], "tanks": [-6, 11], "ep-henry": [24, -74]};   /* v71: Kyle's Move-mode positions, 11/17 8:17 PM */
   var OFF = JSON.parse(JSON.stringify(BAKED)); try{ var mine = JSON.parse(localStorage.getItem("ymap-off") || "null"); if (mine && mine.v === 3) OFF = mine.off; }catch(_){}
   function offOf(id){ return OFF[id] || [0, 0]; }
-  function place(id){ var g = svg.querySelector('[data-id="' + id + '"]'), o = offOf(id); if (g) g.setAttribute("transform", "translate(" + o[0] + " " + o[1] + ")"); }
+  function place(id){ var o = offOf(id); svg.querySelectorAll('[data-id="' + id + '"],[data-follow="' + id + '"]').forEach(function(g){ g.setAttribute("transform", "translate(" + o[0] + " " + o[1] + ")"); }); }
   Object.keys(OFF).forEach(place);
   try{ var bb = layer.getBBox(); FULL.x = Math.min(0, bb.x - 10); FULL.w = Math.max(MAPW, bb.x + bb.width + 10) - FULL.x; FULL.y = Math.min(0, bb.y - 10); FULL.h = MAPH - FULL.y; }catch(_){}
   /* v67 routes: a little road network (RD) — the line follows the roads from the office lot to the point on a road nearest the
