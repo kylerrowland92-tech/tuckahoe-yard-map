@@ -190,7 +190,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   function T(ax, ay){ return [ay, AW - ax]; }
   function TB(ax0, ay0, ax1, ay1){ return [ay0, AW - ax1, ay1 - ay0, ax1 - ax0]; }
   function TL(list){ return list.map(function(q){ return T(q[0], q[1]); }); }
-  var HERE = [276, 980], PARK = [[262, 1021], T(66, 362)];   /* v77 (Kyle 8:48 PM): "you are here" up in the lot in front of the office */
+  var HERE = [296.6, 964.9], PARK = [[262, 1021], T(66, 362)];   /* v77 (Kyle 8:48 PM): "you are here" up in the lot in front of the office */
   function poly(pts){ return pts.map(function(q, i){ return (i ? "L" : "M") + q[0] + " " + Y(q[1]); }).join(" "); }
   function text(x, y, s, cls, parent, anchor){ var t = el("text", { x: x, y: Y(y), "class": "lbl " + (cls || ""), "text-anchor": anchor || "middle" }, parent); t.textContent = s; return t; }
 
@@ -331,7 +331,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
     { id: "cedar-mulch", short: "Cedar", name: "Cedar mulch", k: "p", c: T(365, 348), sz: 13, g: "Mulch & bulk", label: "Cedar" },
     { id: "playground-mulch", short: "Playground", name: "Playground mulch", k: "p", c: T(412, 296), sz: 18, g: "Mulch & bulk", label: "Playground" },
     { id: "root-mulch", short: "Root mulch", name: "Root mulch", k: "p", c: T(412, 362), sz: 15, g: "Mulch & bulk", label: "Root" },
-    { id: "black-mulch", short: "Black", name: "Black mulch", k: "p", c: T(425, 235), g: "Mulch & bulk", sz: 38, label: "Black", note: "On the way out: loop around behind Brown Mulch and between the bulk bins, or go all the way around across Shipping / Receiving to the Main Road." },
+    { id: "black-mulch", short: "Black", name: "Black mulch", k: "p", c: T(425, 235), g: "Mulch & bulk", sz: 38, label: "Black", note: "On the way out: keep going around to the left — past the Techo-Bloc yard and the Fertilizer Building, back to the Main Road and out the gate." },
     // back
     { id: "back-gate", name: "Back gate", k: "x", r: [316, 515, 40, 12], label: "BACK GATE", gate: true, bare: true },
     { id: "wood-chips", short: "Wood chips", name: "Wood chips", k: "p", r: TB(490, 135, 522, 300), g: "Back of the property", label: "Wood chip wall" },
@@ -364,7 +364,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   Object.keys(BINPOS).forEach(function(id){ if (BY[id]) BY[id].bin = BINPOS[id]; });
 
   /* routes: points from the front lot (you are at the counter), with a step on the points that change direction */
-  var S = [HERE[0] + 28, HERE[1] + 12, "Leave the parking lot by the office and turn left onto the Main Road."];   /* Kyle 11/17: directions the way he gives them */
+  var S = [304, 992, "Leave the parking lot by the office and turn left onto the Main Road."];   /* Kyle 11/17: directions the way he gives them */
   var UP = RD_BAKED.main[1].slice();
   function mainTo(y){ return RD_BAKED.main.filter(function(q, i){ return i && q[1] > y; }).map(function(q){ return q.slice(); }); }
   var R = {
@@ -713,7 +713,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   /* v67 routes: a little road network (RD) — the line follows the roads from the office lot to the point on a road nearest the
      place, then one short turn to it. Bending a road in Move mode moves the red line with it. Steps say what you pass and which
      side things are on, the way Kyle gives directions. */
-  var OWN = { "black-mulch": 1, "pallets": 1, "containers-1-5": 1, "containers-6-9": 1, "paver-display": 1, "office": 1, "wood-chips": 1 };
+  var OWN = { "pallets": 1, "containers-1-5": 1, "containers-6-9": 1, "paver-display": 1, "office": 1, "wood-chips": 1 };
   var SFP = [S[0], S[1]], FRONT = [UP[0], UP[1]];
   var RKEYS = ["main", "rec", "cross", "back", "south", "mill"];
   var JP = {
@@ -737,11 +737,12 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
     RKEYS.forEach(function(k){ var pts = RD[k]; if (!pts) return; for (var i = 0; i < pts.length - 1; i++) E.push({ a: key(pts[i]), b: key(pts[i + 1]), k: k }); });
     return { N: N, E: E };
   }
+  var ENDAT = null, RONLY = { "black-mulch": "main" };   /* v85: Black mulch is reached from the Main Road only */   /* v84: a red dot Kyle moved — route to the road point nearest it */
   function roadRoute(id){
     var sh = shapeOf(id); if (!sh) return null;
     var net = netOf(), N = net.N, E = net.E, P0 = BY[id];
-    var C = sh.c || [sh.box[0] + sh.box[2] / 2, sh.box[1] + sh.box[3] / 2], best = null;
-    E.forEach(function(e, ei){ var A = N[e.a], B = N[e.b], dx = B[0] - A[0], dy = B[1] - A[1], LL = dx * dx + dy * dy, t = LL ? ((C[0] - A[0]) * dx + (C[1] - A[1]) * dy) / LL : 0; t = Math.max(0, Math.min(1, t));
+    var C = ENDAT || sh.c || [sh.box[0] + sh.box[2] / 2, sh.box[1] + sh.box[3] / 2], best = null;
+    E.forEach(function(e, ei){ if (RONLY[id] && e.k !== RONLY[id]) return; var A = N[e.a], B = N[e.b], dx = B[0] - A[0], dy = B[1] - A[1], LL = dx * dx + dy * dy, t = LL ? ((C[0] - A[0]) * dx + (C[1] - A[1]) * dy) / LL : 0; t = Math.max(0, Math.min(1, t));
       var X = [A[0] + t * dx, A[1] + t * dy], d = Math.hypot(C[0] - X[0], C[1] - X[1]); if (!best || d < best.d - 1) best = { d: d, ei: ei, X: X, t: t }; });
     if (!best) return null;
     /* shortest way along the roads from the Main Road at the office lot (node 0) to the point X */
@@ -759,6 +760,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
     var D;
     if (sh.c){ var ux = X[0] - C[0], uy = X[1] - C[1], ul = Math.hypot(ux, uy) || 1; D = [C[0] + ux / ul * (sh.r + 7), C[1] + uy / ul * (sh.r * .6 + 7)]; }
     else { var bx = sh.box, qx = Math.max(bx[0], Math.min(bx[0] + bx[2], X[0])), qy = Math.max(bx[1], Math.min(bx[1] + bx[3], X[1])), vx = X[0] - qx, vy = X[1] - qy, vl = Math.hypot(vx, vy) || 1; D = vl > 1 ? [qx + vx / vl * 6, qy + vy / vl * 6] : X; }
+    if (ENDAT) D = ENDAT;
     if (Math.hypot(D[0] - X[0], D[1] - X[1]) > 2) pts.push(D);
     var lastP = pts[pts.length - 3] || SFP, tx = X[0] - lastP[0], ty = X[1] - lastP[1], hx = D[0] - X[0], hy = D[1] - X[1], side = tx * hy - ty * hx;
     var turn = Math.hypot(hx, hy) > 12 ? (side < 0 ? "left" : "right") : null;
@@ -838,8 +840,8 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   var outBox = document.createElement("textarea"); outBox.hidden = true; outBox.rows = 3; outBox.readOnly = true; outBox.style.cssText = "width:100%;box-sizing:border-box;font-size:12px;margin-top:6px";
   /* v70 (Kyle 6:58 PM): every name can be dragged on its own in Move mode ("Move words"); moves stay on this device until Kyle
      taps Copy positions and Claude builds them in for everyone (LBAKED). */
-  var LBAKED = {"nicolock:0": [16.1, -7.8], "hoop-house:0": [-3.6, -40.4], "hill:0": [30.5, -31.2], "wood-chips:0": [-26.2, -20.7], "back-gate:0": [25.5, -48.9], "pallets:0": [3.8, -27.1], "fert:0": [8.2, -13.5], "receiving:0": [5.2, -14.2], "techo:0": [15.6, -8.8], "office:0": [5, -17.5], "paver-display:0": [19.5, -36], "shipping:0": [432.6, -86.5], "leaves:0": [4.3, -0.2], "ep-henry:0": [-3.8, 42.2], "t3": [-11.7, -53.3], "t5": [-91.5, -23], "t4": [89.9, -54.2], "trucks:5": [-13.8, 1.6], "container-yard:10": [-0.6, -8.8], "propane:0": [21.2, -50.5], "fert:1": [-12.7, -14.3], "fert:2": [-9, -11.5], "more-bulk:0": [11, 20.1], "bin:bk-wr-34": [4.1, 14.4], "bin:bk-goose": [2.0, 16.8], "bin:bk-yel-34": [5.2, 5.1], "bin:bk-yel-38": [3.3, 5.8], "bin:bk-red-34": [5.2, -4.5], "bin:bk-red-38": [3.4, -3.0], "bin:bk-bar-sand": [-1.5, -27.0], "bin:bk-gray-38": [-0.3, -27.1], "bin:bk-rice": [-0.8, -15.2], "bin:bk-wr-115": [-1.5, -12.6], "bin:bk-white-bar": [0.3, -0.9], "bin:bk-rr-48": [1.1, 0.9], "bin:rr-1-3": [1.7, 59.9], "bin:quarry-blend": [0.7, 15.2], "bin:concrete-sand": [1.8, 48.2], "bin:dga": [0.0, 0.9], "bin:gray-34": [0.7, 1.2], "bin:rr-15": [2.1, 43.5], "bin:rr-34": [0.3, 2.5]}, LOFF = JSON.parse(JSON.stringify(LBAKED)), WMODE = false, ldrag = null;
-  try{ var ml = JSON.parse(localStorage.getItem("ymap-loff") || "null"); if (ml && ml.v === 2) LOFF = ml.off; else if (ml && ml.v === 1 && !localStorage.getItem("ymap-loff-old")) localStorage.setItem("ymap-loff-old", JSON.stringify(ml.off)); }catch(_){}
+  var LBAKED = {"nicolock:0": [16.1, -7.8], "hoop-house:0": [-3.6, -40.4], "hill:0": [30.5, -31.2], "wood-chips:0": [-26.2, -20.7], "back-gate:0": [25.5, -48.9], "pallets:0": [3.8, -27.1], "fert:0": [8.2, -13.5], "receiving:0": [5.2, -14.2], "techo:0": [15.6, -8.8], "office:0": [5, -17.5], "paver-display:0": [19.5, -36], "shipping:0": [432.6, -86.5], "leaves:0": [4.3, -0.2], "ep-henry:0": [-3.8, 42.2], "t3": [-11.7, -53.3], "t5": [-91.5, -23], "t4": [89.9, -54.2], "trucks:5": [-13.8, 1.6], "container-yard:10": [-0.6, -8.8], "propane:0": [21.2, -50.5], "fert:1": [-12.7, -14.3], "fert:2": [-9, -11.5], "more-bulk:0": [11, 20.1], "bin:bk-wr-34": [4.1, 14.4], "bin:bk-goose": [2.0, 16.8], "bin:bk-yel-34": [5.2, 5.1], "bin:bk-yel-38": [3.3, 5.8], "bin:bk-red-34": [5.2, -4.5], "bin:bk-red-38": [3.4, -3.0], "bin:bk-bar-sand": [-1.5, -27.0], "bin:bk-gray-38": [-0.3, -27.1], "bin:bk-rice": [-0.8, -15.2], "bin:bk-wr-115": [-1.5, -12.6], "bin:bk-white-bar": [0.3, -0.9], "bin:bk-rr-48": [1.1, 0.9], "bin:rr-1-3": [1.7, 59.9], "bin:quarry-blend": [0.7, 15.2], "bin:concrete-sand": [1.8, 48.2], "bin:dga": [0.0, 0.9], "bin:gray-34": [0.7, 1.2], "bin:rr-15": [2.1, 43.5], "bin:rr-34": [0.3, 2.5], "end:fert": [-30.6, -11.3], "end:nicolock": [19.7, 71.5], "end:more-bulk": [42.6, 13.8], "end:techo": [8.5, 13.9], "end:brown-mulch": [24.1, 1.1], "end:red-mulch": [-33.3, 16.2], "end:black-mulch": [-45.4, 22.1], "end:playground-mulch": [-29, 16.7], "end:cedar-mulch": [11.6, 4], "end:root-mulch": [22.4, -0.6], "end:bk-millings": [20.8, -0.2], "end:fill-dirt": [27.6, 0], "end:logs": [-19.7, -14.3], "end:wood-waste": [-13.1, 0.7], "end:mushroom-soil": [-26.8, 19.3], "end:compost": [9.6, 22], "end:topsoil": [4.2, -4.1]}, LOFF = JSON.parse(JSON.stringify(LBAKED)), WMODE = false, ldrag = null;
+  try{ var ml = JSON.parse(localStorage.getItem("ymap-loff") || "null"); if (ml && ml.v === 3) LOFF = ml.off; else if (ml && ml.v === 1 && !localStorage.getItem("ymap-loff-old")) localStorage.setItem("ymap-loff-old", JSON.stringify(ml.off)); }catch(_){}
   (function(){ var n = 0; svg.querySelectorAll("text").forEach(function(t){ if (t.dataset.lid || t.closest(".handles,.youhere") || t.classList.contains("flag") || t.classList.contains("phcredit")) return;
     var g = t.closest("[data-id]"); t.dataset.lid = g ? g.dataset.id + ":" + Array.prototype.indexOf.call(g.querySelectorAll("text"), t) : "t" + (n++); }); })();
   function lplace(t){ var o = LOFF[t.dataset.lid]; if (t.__t0 === undefined) t.__t0 = t.getAttribute("transform") || "";
@@ -854,35 +856,62 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   svg.addEventListener("pointerdown", function(e){ if (!EDIT || !WMODE) return; var c = e.target.closest && e.target.closest("circle[data-dot]"); if (!c) return;
     e.stopPropagation(); e.preventDefault(); ddrag = { id: c.dataset.dot, x: e.clientX, y: e.clientY }; }, true);
   window.addEventListener("pointermove", function(e){ if (!ddrag) return; var k = "dot:" + ddrag.id, o = (LOFF[k] || [0, 0]).slice(); o[0] += (e.clientX - ddrag.x) * v.s; o[1] += (e.clientY - ddrag.y) * v.s; LOFF[k] = o; ddrag.x = e.clientX; ddrag.y = e.clientY; dplace(ddrag.id); });
-  window.addEventListener("pointerup", function(){ if (!ddrag) return; ddrag = null; try{ localStorage.setItem("ymap-loff", JSON.stringify({ v: 2, off: LOFF })); }catch(_){} });
+  window.addEventListener("pointerup", function(){ if (!ddrag) return; ddrag = null; try{ localStorage.setItem("ymap-loff", JSON.stringify({ v: 3, off: LOFF })); }catch(_){} });
   svg.addEventListener("pointerdown", function(e){ if (!EDIT || !WMODE) return; var t = e.target.closest && e.target.closest("text[data-lid]"); if (!t) return;
     e.stopPropagation(); e.preventDefault(); ldrag = { t: t, x: e.clientX, y: e.clientY }; t.style.opacity = ".6"; }, true);
   window.addEventListener("pointermove", function(e){ if (!ldrag) return; var id = ldrag.t.dataset.lid, o = (LOFF[id] || [0, 0]).slice(); o[0] = Math.round((o[0] + (e.clientX - ldrag.x) * v.s) * 10) / 10; o[1] = Math.round((o[1] + (e.clientY - ldrag.y) * v.s) * 10) / 10; LOFF[id] = o; ldrag.x = e.clientX; ldrag.y = e.clientY; lplace(ldrag.t); });
-  window.addEventListener("pointerup", function(){ if (!ldrag) return; ldrag.t.style.opacity = ""; ldrag = null; try{ localStorage.setItem("ymap-loff", JSON.stringify({ v: 2, off: LOFF })); }catch(_){} });
+  window.addEventListener("pointerup", function(){ if (!ldrag) return; ldrag.t.style.opacity = ""; ldrag = null; try{ localStorage.setItem("ymap-loff", JSON.stringify({ v: 3, off: LOFF })); }catch(_){} });
   /* v83 (Kyle 9:12 PM): every destination's red dot can be put on the exact spot — open the map with #dots, tap a place like a
      customer, drag the red dot; drag "You are here" too. Saved as "end:<id>" / "here"; Copy red-dot spots gives them to Claude. */
   var DOTMODE = /#dots|[?&]dots\b/.test(location.hash + location.search), curDest = null, edrag = null;
   function endFix(id){ var o = LOFF["end:" + id]; if (!o) return; var ex = +dot.getAttribute("cx") + o[0], ey = +dot.getAttribute("cy") + o[1];
     dot.setAttribute("cx", ex); dot.setAttribute("cy", ey); pulse.setAttribute("cx", ex); pulse.setAttribute("cy", ey); flag.setAttribute("x", Math.min(FULL.x + FULL.w - 50, Math.max(FULL.x + 50, ex))); flag.setAttribute("y", ey - 14);
     var d = route.getAttribute("d") || ""; route.setAttribute("d", d.replace(/L\s*[-\d.]+\s+[-\d.]+\s*$/, "L" + ex + " " + ey)); }
-  var go0 = go; go = function(id){ go0(id); curDest = id; try{ endFix(id); }catch(_){} };
+  var PBAKED = {};   /* v85: Kyle's own red lines, per place */
+  var PATHS = JSON.parse(JSON.stringify(PBAKED)); try{ var mp = JSON.parse(localStorage.getItem("ymap-paths") || "null"); if (mp && mp.v === 1) PATHS = mp.p; }catch(_){}
+  function usePath(id){ var P = PATHS[id]; if (!P || P.length < 2) return false; var e = P[P.length - 1];
+    route.setAttribute("d", P.map(function(q, i){ return (i ? "L" : "M") + q[0] + " " + q[1]; }).join(" "));
+    dot.setAttribute("cx", e[0]); dot.setAttribute("cy", e[1]); pulse.setAttribute("cx", e[0]); pulse.setAttribute("cy", e[1]); flag.setAttribute("x", Math.min(FULL.x + FULL.w - 50, Math.max(FULL.x + 50, e[0]))); flag.setAttribute("y", e[1] - 14); return true; }
+  function routePts(){ return (route.getAttribute("d") || "").split(/(?=[ML])/).map(function(t){ var n = t.slice(1).trim().split(/\s+/).map(Number); return [Math.round(n[0] * 10) / 10, Math.round(n[1] * 10) / 10]; }).filter(function(q){ return isFinite(q[0]) && isFinite(q[1]); }); }
+  var go0 = go; go = function(id){ goR(id); try{ usePath(id); }catch(_){} if (DOTMODE) try{ drawPH(); }catch(_){} };
+  function goR(id){ go0(id); curDest = id; var o = LOFF["end:" + id];
+    if (o && !OWN[id]){ var e0 = [+dot.getAttribute("cx") - (dot.__o ? dot.__o[0] : 0), +dot.getAttribute("cy") - (dot.__o ? dot.__o[1] : 0)]; var kv = KEEPVIEW; KEEPVIEW = true;
+      try{ ENDAT = [e0[0] + o[0], e0[1] + o[1]]; go0(id); } catch(_){} finally { ENDAT = null; KEEPVIEW = kv; } }
+    else { try{ endFix(id); }catch(_){} } }
+  var phG = null, pdrag = null;
+  function savePaths(){ try{ localStorage.setItem("ymap-paths", JSON.stringify({ v: 1, p: PATHS })); }catch(_){} }
+  function drawPH(){ if (phG) phG.remove(); phG = null; if (!DOTMODE || !curDest) return; var P = PATHS[curDest] || routePts(); if (P.length < 2) return;
+    phG = el("g", { "class": "phandles" }); var rr = Math.max(1.2, Math.min(5, 9 * v.s)), id = curDest;
+    for (var i = 0; i < P.length - 1; i++) (function(i){ var m = el("circle", { cx: (P[i][0] + P[i + 1][0]) / 2, cy: (P[i][1] + P[i + 1][1]) / 2, r: rr * .7, fill: "rgba(0,0,0,.45)", stroke: "#fff", "stroke-width": rr * .2, style: "cursor:copy" }, phG);
+      m.addEventListener("pointerdown", function(e){ e.stopPropagation(); e.preventDefault(); var Q = (PATHS[id] || routePts()).slice(); Q.splice(i + 1, 0, [(Q[i][0] + Q[i + 1][0]) / 2, (Q[i][1] + Q[i + 1][1]) / 2]); PATHS[id] = Q; pdrag = { i: i + 1, x: e.clientX, y: e.clientY }; usePath(id); drawPH(); }); })(i);
+    P.forEach(function(q, i){ if (i === P.length - 1) return; var h = el("circle", { cx: q[0], cy: q[1], r: rr, fill: "#fff", stroke: "#e8261b", "stroke-width": rr * .3, style: "cursor:move" }, phG);
+      h.addEventListener("pointerdown", function(e){ e.stopPropagation(); e.preventDefault(); if (!PATHS[id]) PATHS[id] = routePts(); pdrag = { i: i, x: e.clientX, y: e.clientY }; });
+      h.addEventListener("dblclick", function(e){ e.stopPropagation(); var Q = PATHS[id] || routePts(); if (Q.length <= 2 || i === 0) return; Q = Q.slice(); Q.splice(i, 1); PATHS[id] = Q; savePaths(); usePath(id); drawPH(); }); });
+  }
+  window.addEventListener("pointermove", function(e){ if (!pdrag || !curDest) return; var Q = PATHS[curDest], q = Q[pdrag.i]; q[0] = Math.round((q[0] + (e.clientX - pdrag.x) * v.s) * 10) / 10; q[1] = Math.round((q[1] + (e.clientY - pdrag.y) * v.s) * 10) / 10; pdrag.x = e.clientX; pdrag.y = e.clientY; usePath(curDest); drawPH(); });
+  window.addEventListener("pointerup", function(){ if (!pdrag) return; pdrag = null; savePaths(); });
   (function(){ var o = LOFF.here; if (o) here.setAttribute("transform", "translate(" + o[0] + " " + o[1] + ")"); })();
   if (DOTMODE){
     svg.classList.add("dotmode");
-    var dbar = document.createElement("div"); dbar.className = "dotbar"; dbar.innerHTML = '<b>Red-dot mode</b><span>Tap a place, then drag its red dot to the exact spot. Drag the You-are-here dot too.</span><button type="button" id="dotCopy">📋 Copy red-dot spots</button><textarea id="dotOut" rows="3" readonly hidden></textarea>';
+    var dbar = document.createElement("div"); dbar.className = "dotbar"; dbar.innerHTML = '<b>Red-dot mode</b><span>Tap a place. Drag its red dot to the exact spot. Bend the red line: drag a white point, drag a grey point to add a bend, double-tap a white point to remove it.</span><button type="button" id="dotReset">↺ Reset this line</button><button type="button" id="dotCopy">📋 Copy red-dot spots</button><textarea id="dotOut" rows="3" readonly hidden></textarea>';
     document.body.appendChild(dbar);
+    document.getElementById("dotReset").addEventListener("click", function(){ if (!curDest) return; delete PATHS[curDest]; savePaths(); var kv = KEEPVIEW; KEEPVIEW = true; try{ go(curDest); } finally { KEEPVIEW = kv; } });
+    wrap.addEventListener("wheel", function(){ setTimeout(drawPH, 60); }); window.addEventListener("pointerup", function(){ setTimeout(drawPH, 60); });
     document.getElementById("dotCopy").addEventListener("click", function(){ copyPos(); var t = document.getElementById("dotOut"); t.value = outBox.value; t.hidden = false; t.select(); });
     svg.addEventListener("pointerdown", function(e){ var t = e.target; if (t === dot || t === pulse){ if (!curDest) return; e.stopPropagation(); e.preventDefault(); edrag = { k: "end:" + curDest, x: e.clientX, y: e.clientY }; }
       else if (t.closest && t.closest(".youhere") && t.tagName === "circle"){ e.stopPropagation(); e.preventDefault(); edrag = { k: "here", x: e.clientX, y: e.clientY }; } }, true);
     window.addEventListener("pointermove", function(e){ if (!edrag) return; var dx = (e.clientX - edrag.x) * v.s, dy = (e.clientY - edrag.y) * v.s, o = (LOFF[edrag.k] || [0, 0]).slice(); o[0] = Math.round((o[0] + dx) * 10) / 10; o[1] = Math.round((o[1] + dy) * 10) / 10; LOFF[edrag.k] = o; edrag.x = e.clientX; edrag.y = e.clientY;
       if (edrag.k === "here") here.setAttribute("transform", "translate(" + o[0] + " " + o[1] + ")");
       else { var ex = +dot.getAttribute("cx") + dx, ey = +dot.getAttribute("cy") + dy; dot.setAttribute("cx", ex); dot.setAttribute("cy", ey); pulse.setAttribute("cx", ex); pulse.setAttribute("cy", ey); flag.setAttribute("x", ex); flag.setAttribute("y", ey - 14); var d = route.getAttribute("d") || ""; route.setAttribute("d", d.replace(/L\s*[-\d.]+\s+[-\d.]+\s*$/, "L" + ex + " " + ey)); } });
-    window.addEventListener("pointerup", function(){ if (!edrag) return; edrag = null; try{ localStorage.setItem("ymap-loff", JSON.stringify({ v: 2, off: LOFF })); }catch(_){} });
+    window.addEventListener("pointerup", function(){ if (!edrag) return; var k = edrag.k; edrag = null; try{ localStorage.setItem("ymap-loff", JSON.stringify({ v: 3, off: LOFF })); }catch(_){}
+      if (k !== "here" && curDest){ if (PATHS[curDest]){ var Q = PATHS[curDest]; Q[Q.length - 1] = [Math.round(+dot.getAttribute("cx") * 10) / 10, Math.round(+dot.getAttribute("cy") * 10) / 10]; savePaths(); delete LOFF["end:" + curDest]; try{ localStorage.setItem("ymap-loff", JSON.stringify({ v: 3, off: LOFF })); }catch(_){} usePath(curDest); drawPH(); return; }
+        var kv = KEEPVIEW; KEEPVIEW = true; try{ go(curDest); } finally { KEEPVIEW = kv; } } });
   }
   function copyPos(){
     var out = {}; Object.keys(OFF).forEach(function(k){ var o = OFF[k]; if (Math.abs(o[0]) + Math.abs(o[1]) > 0.5) out[k] = [Math.round(o[0]), Math.round(o[1])]; });
     if (JSON.stringify(RD) !== JSON.stringify(RD_BAKED)) out._roads = RD;
     var lw = {}; Object.keys(LOFF).forEach(function(k){ var o = LOFF[k]; if (Math.abs(o[0]) + Math.abs(o[1]) > 0.3) lw[k] = [Math.round(o[0] * 10) / 10, Math.round(o[1] * 10) / 10]; }); if (Object.keys(lw).length) out._words = lw;
+    if (Object.keys(PATHS).length) out._paths = PATHS;
     try{ var od = JSON.parse(localStorage.getItem("ymap-loff-old") || "null"); if (od) out._oldWords = od; }catch(_){}
     var txt = "Yard map moves: " + JSON.stringify(out); outBox.value = txt; outBox.hidden = false; outBox.select();
     try{ navigator.clipboard.writeText(txt).then(function(){ askText.textContent = "Copied — paste it to Claude"; }, function(){ askText.textContent = "Copy the text below"; }); }catch(_){ askText.textContent = "Copy the text below"; }
@@ -966,7 +995,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
       "follow it past techo-bloc and the truck parking, then up the lane beside the pond to the belgard / ep henry circle.": "Sígalo pasando Techo-Bloc y el Estacionamiento de camiones, y luego suba por el camino junto al estanque hasta el círculo de Belgard / EP Henry.",
       "keep going toward the fertilizer building.": "Siga hacia el Edificio de fertilizantes.",
       "drop pallets at the pallet pile on your left.": "Deje las tarimas en el montón de tarimas a su izquierda.",
-      "on the way out: loop around behind brown mulch and between the bulk bins, or go all the way around across shipping / receiving to the main road.": "Para salir: dé la vuelta detrás del Mantillo café y entre los compartimentos a granel, o rodee por Envíos / Recepción hasta el Camino principal."
+      "on the way out: keep going around to the left — past the techo-bloc yard and the fertilizer building, back to the main road and out the gate.": "Para salir: siga dando la vuelta hacia la izquierda, pasando el patio de Techo-Bloc y el Edificio de fertilizantes, de regreso al Camino principal y salga por el portón."
     };
     var PH = [
       ["Bulk Materials \\(Front\\)", "Materiales a granel (frente)"], ["Bulk Materials \\(Back\\)", "Materiales a granel (atrás)"], ["Bulk Materials", "Materiales a granel"],
