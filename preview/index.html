@@ -66,6 +66,7 @@ svg:not(.photo) .photolayer,svg:not(.photo) .phcredit{display:none}
 .dotbar b{color:#ff6a5e}.dotbar button{min-height:36px;font-weight:800;border-radius:8px;border:0;background:#e8261b;color:#fff}.dotbar textarea{width:100%;font-size:11px}
 svg.dotmode .youhere circle,svg.dotmode circle.youhere,svg.dotmode .pulse{cursor:move}
 svg.dotmode circle.youhere,svg.dotmode g.youhere circle{pointer-events:auto}
+svg.dotmode circle.pulse{pointer-events:auto}   /* the tiny dot is easier to grab by its glow */
 svg.editing .bindot{r:2.6px;cursor:move}
 svg:not(.near) .binlead{display:none}
 .binlbl{font-family:var(--f-sign);font-weight:700;font-size:calc(11px * var(--k, 1));stroke-width:calc(3px * var(--k, 1)) !important;fill:#fff;paint-order:stroke;stroke:#111;stroke-width:1.3px;text-anchor:middle}
@@ -597,7 +598,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
     var f = 16 * v.s;   // v86: the destination name, the red dot and "You are here" stay the same size on screen at any zoom
     flag.setAttribute("font-size", f); flag.setAttribute("stroke-width", f * 0.22); youTxt.setAttribute("font-size", 13 * v.s); youTxt.setAttribute("transform", "translate(0 " + (12 - 13 * v.s) + ")");
     flagBox.setAttribute("transform", "translate(0 " + (14 - 15 * v.s) + ")"); youDot.setAttribute("r", 6 * v.s); youDot.setAttribute("stroke-width", 2.2 * v.s);
-    dot.setAttribute("r", 5 * v.s); dot.setAttribute("stroke-width", 1.8 * v.s); pulse.setAttribute("r", 11 * v.s);
+    dot.setAttribute("r", 3 * v.s); dot.setAttribute("stroke-width", 1.1 * v.s); pulse.setAttribute("r", 7 * v.s);   /* Kyle 9:46 PM: even smaller */
   }
   function fit(b, pad){ var z = size(); pad = pad || 24; v.s = Math.max(b.w / Math.max(40, z.w - 2 * pad), b.h / Math.max(40, z.h - 2 * pad)); v.x = b.x + b.w / 2; v.y = b.y + b.h / 2; apply(); }
   function zoomAt(k, px, py){ var r = wrap.getBoundingClientRect(), z = size(); var mx = v.x + (px - r.left - z.w / 2) * v.s, my = v.y + (py - r.top - z.h / 2) * v.s;
