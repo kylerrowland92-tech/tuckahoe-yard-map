@@ -249,8 +249,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   var roadG = el("g", { "class": "roadg" });
   function dOf(pts, close){ return "M" + pts.map(function(q){ return q[0] + " " + q[1]; }).join(" L") + (close ? " Z" : ""); }
   function drawAsph(){ asphG.textContent = ""; var d = RD.main.map(function(q, i){ return (i ? "L" : "M") + q[0] + " " + q[1]; }).join(" ");
-    el("path", { d: d, fill: "none", stroke: "#111", "stroke-width": 13, "stroke-linecap": "round", "stroke-linejoin": "round", opacity: .55 }, asphG);
-    el("path", { d: d, fill: "none", stroke: "#2c2c2e", "stroke-width": 10.5, "stroke-linecap": "round", "stroke-linejoin": "round", opacity: .92 }, asphG); }
+    el("path", { d: d, fill: "none", stroke: "rgba(255,255,255,.75)", "stroke-width": 1.4, "stroke-linecap": "round", "stroke-dasharray": "0.01 6", "class": "rdots" }, asphG); }
   function drawRoads(){ try{ drawAsph(); }catch(_){}
     roadG.textContent = "";
     /* Kyle 11/16 11:11 PM: no shading on the open areas — too messy. The office lane is drawn as a regular road. */
