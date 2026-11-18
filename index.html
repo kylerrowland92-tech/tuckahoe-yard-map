@@ -61,6 +61,8 @@ svg.photo .pshape .pl{fill-opacity:1 !important;stroke-opacity:1 !important}
 svg.photo .lbl{stroke:#111;stroke-width:3.4px}
 svg:not(.photo) .photolayer,svg:not(.photo) .phcredit{display:none}
 .binlead{stroke:#ffd400;stroke-width:.4;fill:none}
+svg.editing .binlbl,svg.editing .bindot,svg.editing .binlead{display:inline !important}
+svg.editing .bindot{r:2.6px;cursor:move}
 svg:not(.near) .binlead{display:none}
 .binlbl{font-family:var(--f-sign);font-weight:700;font-size:calc(11px * var(--k, 1));stroke-width:calc(3px * var(--k, 1)) !important;fill:#fff;paint-order:stroke;stroke:#111;stroke-width:1.3px;text-anchor:middle}
 .bindot{fill:#ffd400;stroke:#111;stroke-width:.5}
@@ -238,15 +240,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   var roadStyle = { fill: "none", stroke: "var(--road)", "stroke-width": 18, "stroke-linecap": "round", "stroke-linejoin": "round" };
   var edge = { fill: "none", stroke: "var(--road-edge)", "stroke-width": 20, "stroke-linecap": "round", "stroke-linejoin": "round" };
   /* v67 (Kyle 11/17 5:37 PM, Armando's aerial): the roads traced off the aerial. Kyle can still bend them in Move mode (white dots). */
-  var RD_BAKED = {
-    main: TL([[4, 308], [55, 306], [120, 305], [200, 305], [300, 310], [365, 320], [400, 325], [462, 331], [525, 336], [600, 345], [700, 350], [760, 330], [800, 296], [815, 292]]),
-    rec: TL([[200, 305], [205, 262], [232, 240], [290, 230], [340, 222], [388, 200], [393, 160], [378, 118], [360, 97]]),   /* Shipping / Receiving, past Techo-Bloc and the trucks, up beside the pond to Belgard */
-    cross: TL([[120, 305], [118, 238], [160, 233]]),   /* the lot between the office and the containers */
-    back: TL([[760, 330], [752, 272], [750, 218]]),   /* up to the topsoil */
-    south: TL([[462, 331], [470, 400], [462, 480], [447, 540], [438, 570]]),   /* past the hoop house to the fill dirt */
-    mill: TL([[447, 540], [530, 585], [585, 610]]),   /* to the millings */
-    ring: [T(345, 78)]
-  };
+  var RD_BAKED = {"main": [[317.2, 993.8], [318.5, 993], [325.1, 927.9], [319, 849.8], [319.1, 801.3], [322.2, 752], [330.8, 694.4], [337.9, 652.1], [345.6, 589.9], [350.3, 555], [356.1, 523], [378.6, 448], [350, 346], [330, 286], [296, 246], [292, 231]], "rec": [[316, 849.8], [272, 821.5], [253, 798.7], [238.3, 751.9], [226.9, 706], [209.8, 631.5], [189.4, 616.4], [163, 611.1], [136.5, 637.3], [120.6, 645.4], [116.8, 648.3]], "cross": [[234.3, 924.9], [233.6, 924.2], [234.5, 924.5]], "back": [[330, 286], [272, 294], [218, 296]], "south": [[358.7, 523.2], [365.6, 498.2], [440.4, 511.1], [567.9, 544.5], [569.1, 547], [637.3, 571.5]], "mill": [[568.6, 543.7], [585, 516], [610, 461]], "ring": [[90.8, 658.4]]};   /* v78: Kyle's road bends, 11/17 8:52 PM (map units) */
   var RD = JSON.parse(JSON.stringify(RD_BAKED));
   try{ var myRd = JSON.parse(localStorage.getItem("ymap-roads") || "null"); if (myRd && myRd.v === 3 && myRd.rd && myRd.rd.main && myRd.rd.rec) RD = myRd.rd; }catch(_){}
   var LOT = { fill: "#4a453d", stroke: "#5b554b", "stroke-width": 1.2, "stroke-linejoin": "round" };
@@ -539,8 +533,8 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
       var edge = dir < 0 ? Math.min.apply(null, ps.map(function(p){ return p.bin[1]; })) - 6 : Math.max.apply(null, ps.map(function(p){ return p.bin[1]; })) + 9;
       ps.forEach(function(p, i){ var lv = n - 1 - i, ly = edge + dir * lv * 5.6, up = ly < p.bin[1];
         var lead = el("path", { "class": "binlead", d: "M" + p.bin[0] + " " + p.bin[1] + " L" + p.bin[0] + " " + (ly + (up ? 1 : -3.6)) }, bg);
-        el("circle", { "class": "bindot", cx: p.bin[0], cy: p.bin[1], r: 1.4 }, bg);
-        var t = el("text", { "class": "binlbl", x: p.bin[0] - 1, y: ly, "data-lid": "bin:" + p.id, style: "text-anchor:start" }, bg); t.textContent = SH[p.id] || p.short; t.__lead = lead; t.__dot = p.bin; }); };
+        var dotEl = el("circle", { "class": "bindot", cx: p.bin[0], cy: p.bin[1], r: 1.4, "data-dot": p.id }, bg); p.__bin0 = p.bin.slice();
+        var t = el("text", { "class": "binlbl", x: p.bin[0] - 1, y: ly, "data-lid": "bin:" + p.id, style: "text-anchor:start" }, bg); t.textContent = SH[p.id] || p.short; t.__lead = lead; t.__dot = p.bin; dotEl.__t = t; }); };
     stack(["bk-red-38", "bk-red-34", "bk-yel-38", "bk-yel-34", "bk-goose", "bk-wr-34"], -1);   /* Stone #2 far row: names above */
     stack(["bk-rr-48", "bk-white-bar", "bk-wr-115", "bk-rice", "bk-gray-38", "bk-bar-sand"], 1);   /* Stone #2 office row: names below */
     stack(["rr-1-3", "quarry-blend", "concrete-sand", "dga", "gray-34", "rr-15", "rr-34"], -1); })();
@@ -703,7 +697,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
      Moves are kept on this phone/computer only; "Copy positions" gives the list to paste to Claude, who builds them into the map
      for everyone. Customers never see this. ---------- */
   /* Kyle's own placements (Move piles, 11/16 8:18 PM), built in for everyone */
-  var BAKED = {"office": [12, -4], "paver-display": [15, 33], "nicolock": [15, -99], "fert": [35, 0], "receiving": [11, -19], "container-yard": [36, 37], "propane": [16, 33], "pallets": [3, -8], "more-bulk": [8, 24], "trucks": [8, -30], "techo": [-16, -13], "black-mulch": [16, -35], "playground-mulch": [25, -33], "red-mulch": [21, -24], "brown-mulch": [-8, -14], "cedar-mulch": [18, -11], "root-mulch": [13, -19], "back-gate": [-2, 52], "wood-chips": [28, 16], "hill": [38, -8], "hoop-house": [22, -19], "wood-waste": [-33, -30], "logs": [-20, -6], "grass": [-5, -45], "cornfield": [35, -6], "topsoil": [-8, -65], "screener": [28, -8], "leaves": [42, -70], "windrow-5": [60, 8], "water": [-20, -92], "tanks": [-6, 11], "ep-henry": [24, -74]};   /* v71: Kyle's Move-mode positions, 11/17 8:17 PM */
+  var BAKED = {"office": [12, -4], "paver-display": [15, 33], "nicolock": [18, -121], "fert": [35, 0], "receiving": [11, -20], "container-yard": [36, 37], "propane": [16, 33], "pallets": [3, -8], "more-bulk": [15, -27], "trucks": [14, -40], "techo": [-16, -13], "black-mulch": [9, -49], "playground-mulch": [22, -37], "red-mulch": [17, -35], "brown-mulch": [-5, -27], "cedar-mulch": [28, -22], "root-mulch": [14, -23], "back-gate": [-2, 52], "wood-chips": [28, 16], "hill": [38, -8], "hoop-house": [22, -19], "wood-waste": [-33, -30], "logs": [-20, -6], "grass": [52, -46], "cornfield": [40, 1], "topsoil": [-8, -65], "screener": [28, -8], "leaves": [24, -28], "windrow-5": [50, 11], "water": [-20, -92], "tanks": [-6, 11], "ep-henry": [16, -92], "bulk-front": [9, -25], "fill-dirt": [22, -71]};   /* v78: Kyle's Move-mode positions, 11/17 8:52 PM */
   var OFF = JSON.parse(JSON.stringify(BAKED)); try{ var mine = JSON.parse(localStorage.getItem("ymap-off") || "null"); if (mine && mine.v === 3) OFF = mine.off; }catch(_){}
   function offOf(id){ return OFF[id] || [0, 0]; }
   function place(id){ var o = offOf(id); svg.querySelectorAll('[data-id="' + id + '"],[data-follow="' + id + '"]').forEach(function(g){ g.setAttribute("transform", "translate(" + o[0] + " " + o[1] + ")"); }); }
@@ -812,7 +806,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
     routeBox.appendChild(bar); routeBox.appendChild(outBox);
     var li = document.createElement("li"); li.dataset.n = "i"; li.textContent = "Drag a pile, yard or building with one finger. Pinch or use + − to zoom. When you\u2019re done, tap Copy positions and paste it to Claude, who puts the moves on the map for everyone."; st.appendChild(li);
     var li2 = document.createElement("li"); li2.dataset.n = "i"; li2.textContent = "Roads and open areas: drag a white dot to bend them. Drag a small hollow dot (between two white dots) to add a new bend. Double-tap a white dot to remove it."; st.appendChild(li2);
-    var li3 = document.createElement("li"); li3.dataset.n = "i"; li3.textContent = "Names: tap Move words so it says ON, then drag any name (bin names show when you zoom in close). Tap it again to go back to moving piles."; st.appendChild(li3);
+    var li3 = document.createElement("li"); li3.dataset.n = "i"; li3.textContent = "Names and bins: tap Move words so it says ON, then drag any name, or drag a bin\u2019s yellow dot onto the real bin. Tap it again to go back to moving piles."; st.appendChild(li3);
     drawHandles();
   }
   /* road handles — white dots on every bend, hollow dots between them to add a bend */
@@ -837,7 +831,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   var outBox = document.createElement("textarea"); outBox.hidden = true; outBox.rows = 3; outBox.readOnly = true; outBox.style.cssText = "width:100%;box-sizing:border-box;font-size:12px;margin-top:6px";
   /* v70 (Kyle 6:58 PM): every name can be dragged on its own in Move mode ("Move words"); moves stay on this device until Kyle
      taps Copy positions and Claude builds them in for everyone (LBAKED). */
-  var LBAKED = {}, LOFF = JSON.parse(JSON.stringify(LBAKED)), WMODE = false, ldrag = null;
+  var LBAKED = {"bin:concrete-sand": [0.5, 6.7], "bin:gray-34": [0.5, 2.4], "bin:quarry-blend": [1.1, 1.1], "bin:bk-wr-34": [-0.1, 1.4], "hoop-house:0": [-3.6, -40.4], "hill:0": [47.5, -40.5], "wood-chips:0": [-26.2, -20.7], "back-gate:0": [28.1, -32], "pallets:0": [-1.5, -19], "fert:0": [8.2, -13.5], "receiving:0": [4.6, -27.5], "techo:0": [15.6, -8.8], "office:0": [8.8, -7.9], "paver-display:0": [-19.9, -33.2], "leaves:0": [4.3, -0.2], "ep-henry:0": [-3.8, 42.2], "t3": [-11.7, -53.3], "t5": [11.7, -36], "t4": [110.5, -58.1], "trucks:5": [-13.8, 1.6]}, LOFF = JSON.parse(JSON.stringify(LBAKED)), WMODE = false, ldrag = null;
   try{ var ml = JSON.parse(localStorage.getItem("ymap-loff") || "null"); if (ml && ml.v === 1) LOFF = ml.off; }catch(_){}
   (function(){ var n = 0; svg.querySelectorAll("text").forEach(function(t){ if (t.dataset.lid || t.closest(".handles,.youhere") || t.classList.contains("flag") || t.classList.contains("phcredit")) return;
     var g = t.closest("[data-id]"); t.dataset.lid = g ? g.dataset.id + ":" + Array.prototype.indexOf.call(g.querySelectorAll("text"), t) : "t" + (n++); }); })();
@@ -845,6 +839,15 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
     var tr = (o ? "translate(" + o[0] + " " + o[1] + ") " : "") + t.__t0; if (tr.trim()) t.setAttribute("transform", tr.trim()); else t.removeAttribute("transform");
     if (t.__lead && t.__dot){ var x = +t.getAttribute("x") + (o ? o[0] : 0), y = +t.getAttribute("y") + (o ? o[1] : 0), up = y < t.__dot[1]; t.__lead.setAttribute("d", "M" + t.__dot[0] + " " + t.__dot[1] + " L" + x + " " + (y + (up ? 1 : -3.6))); } }
   svg.querySelectorAll("text[data-lid]").forEach(lplace);
+  /* v78: a bin's yellow dot can be dragged onto the real bin in Move mode (with Move words ON); saved as "dot:<bin>" */
+  function dplace(id){ var p = BY[id], c = svg.querySelector('circle[data-dot="' + id + '"]'); if (!p || !c || !p.__bin0) return; var o = LOFF["dot:" + id] || [0, 0];
+    p.bin = [Math.round((p.__bin0[0] + o[0]) * 10) / 10, Math.round((p.__bin0[1] + o[1]) * 10) / 10]; c.setAttribute("cx", p.bin[0]); c.setAttribute("cy", p.bin[1]); if (c.__t){ c.__t.__dot = p.bin; lplace(c.__t); } }
+  Object.keys(LOFF).forEach(function(k){ if (k.indexOf("dot:") === 0) dplace(k.slice(4)); });
+  var ddrag = null;
+  svg.addEventListener("pointerdown", function(e){ if (!EDIT || !WMODE) return; var c = e.target.closest && e.target.closest("circle[data-dot]"); if (!c) return;
+    e.stopPropagation(); e.preventDefault(); ddrag = { id: c.dataset.dot, x: e.clientX, y: e.clientY }; }, true);
+  window.addEventListener("pointermove", function(e){ if (!ddrag) return; var k = "dot:" + ddrag.id, o = (LOFF[k] || [0, 0]).slice(); o[0] += (e.clientX - ddrag.x) * v.s; o[1] += (e.clientY - ddrag.y) * v.s; LOFF[k] = o; ddrag.x = e.clientX; ddrag.y = e.clientY; dplace(ddrag.id); });
+  window.addEventListener("pointerup", function(){ if (!ddrag) return; ddrag = null; try{ localStorage.setItem("ymap-loff", JSON.stringify({ v: 1, off: LOFF })); }catch(_){} });
   svg.addEventListener("pointerdown", function(e){ if (!EDIT || !WMODE) return; var t = e.target.closest && e.target.closest("text[data-lid]"); if (!t) return;
     e.stopPropagation(); e.preventDefault(); ldrag = { t: t, x: e.clientX, y: e.clientY }; t.style.opacity = ".6"; }, true);
   window.addEventListener("pointermove", function(e){ if (!ldrag) return; var id = ldrag.t.dataset.lid, o = (LOFF[id] || [0, 0]).slice(); o[0] = Math.round((o[0] + (e.clientX - ldrag.x) * v.s) * 10) / 10; o[1] = Math.round((o[1] + (e.clientY - ldrag.y) * v.s) * 10) / 10; LOFF[id] = o; ldrag.x = e.clientX; ldrag.y = e.clientY; lplace(ldrag.t); });
