@@ -132,6 +132,15 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .dest{font-family:var(--f-sign);font-weight:800;font-size:24px;line-height:1.05}
 .steps{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px;max-height:26vh;overflow-y:auto;font-size:14px}
 .steps li{display:grid;grid-template-columns:22px 1fr;gap:6px;align-items:start}
+/* v94 (Kyle 11/19 10:07 AM): the directions fold away on a phone; the red line is enough for most people */
+.desthd{display:flex;align-items:center;gap:8px}.desthd .dest{flex:1 1 auto;min-width:0}
+.dirbtn{flex:0 0 auto;min-height:34px;padding:4px 12px;border-radius:9px;border:1px solid var(--line);background:var(--chip);color:inherit;font:inherit;font-size:13px;font-weight:700;white-space:nowrap;cursor:pointer}
+.dirbtn::after{content:" \25BE"}.dirbtn[aria-expanded="true"]::after{content:" \25B4"}
+.dirbtn:focus-visible{outline:2px solid var(--route);outline-offset:2px}
+.steps.keep{max-height:none;overflow:visible}
+#routeBox{display:flex;flex-direction:column;gap:5px}#routeBox[hidden]{display:none}
+@media (max-width:759px){ #routeBox:not(.diropen) #steps{display:none} }
+@media (min-width:760px){ .dirbtn{display:none} }
 .steps li::before{content:attr(data-n);display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--route);color:#fff;font-family:var(--f-sign);font-weight:800;font-size:13px;margin-top:1px}
 .lbl{font-family:var(--f-sign);font-weight:700;fill:var(--ink);font-size:11px;letter-spacing:.02em;paint-order:stroke;stroke:var(--ground);stroke-width:3px;stroke-linejoin:round}
 .lbl.bl{stroke:none}
@@ -177,7 +186,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   <div class="panel" id="panel">
     <div class="ask" id="ask"><span id="askText">Where are you going?</span><button type="button" id="back" hidden>‹ Back</button></div>
     <div class="btns cats" id="btns"></div>
-    <div id="routeBox" hidden><div class="dest" id="dest"></div><ol class="steps" id="steps"></ol></div>
+    <div id="routeBox" hidden><div class="desthd"><div class="dest" id="dest"></div><button type="button" id="dirBtn" class="dirbtn" aria-expanded="false" aria-controls="steps">Directions</button></div><ol class="steps keep" id="stepsKeep"></ol><ol class="steps" id="steps"></ol></div>
   </div>
 </div>
 <div class="qr" id="qr" hidden><div class="qrcard"><b>Find your way in the yard</b><span>Scan with your phone camera</span><div id="qrImg"></div><span>Tap where you're going and follow the red line · Peach Country, Tuckahoe</span>
@@ -679,6 +688,10 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   });
 
   function clearRoute(){ pulse.classList.remove("on"); route.setAttribute("d", ""); dot.setAttribute("opacity", 0); pulse.setAttribute("opacity", 0); flag.textContent = ""; try{ history.replaceState(null, "", location.pathname + location.search); }catch(_){} }
+  /* v94: Directions open / folded — stays how the person left it for this visit */
+  var DIROPEN = false, dirBtn = document.getElementById("dirBtn");
+  function dirSet(open, none){ routeBox.classList.toggle("diropen", !!open); dirBtn.setAttribute("aria-expanded", open ? "true" : "false"); if (none != null) dirBtn.hidden = !!none; }
+  dirBtn.addEventListener("click", function(){ DIROPEN = !DIROPEN; dirSet(DIROPEN); try{ apply(); }catch(_){} });
   function go(id){
     var p = BY[id], q = R[p.at || id]; if (!p || !q) return;
     if (cur === null) CATS.forEach(function(c, i){ if (c[1].indexOf(id) >= 0) cur = i; });
@@ -688,11 +701,12 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
     flag.textContent = p.short || p.name; flag.setAttribute("x", Math.min(MAPW - 60, Math.max(60, ex))); flag.setAttribute("y", ey - 14);
     btns.hidden = true; routeBox.hidden = false; backB.hidden = false; askText.textContent = "Follow the red line";
     document.getElementById("dest").textContent = p.name;
-    var st = document.getElementById("steps"), n = 0; st.textContent = "";
+    var st = document.getElementById("steps"), n = 0; st.textContent = ""; var sk = document.getElementById("stepsKeep"); sk.textContent = "";
     q.forEach(function(k){ if (k[2]){ var li = document.createElement("li"); li.dataset.n = ++n; li.textContent = k[2]; st.appendChild(li); } });
     var li2 = document.createElement("li"); li2.dataset.n = "●"; if (p.note){ var ln = document.createElement("li"); ln.dataset.n = "i"; ln.textContent = p.note; setTimeout(function(){ document.getElementById("steps").appendChild(ln); }, 2); }
-    li2.textContent = (p.short || p.name) + (p.bin ? " is the bin at the red dot, " + p.where + ". Check the bin sign before you load." : p.where ? " is " + p.where + (p.at === "fert" ? " (the red dot)." : " (the red dot). The map doesn’t show which bin — check the bin signs or ask at the office.") : " is at the red dot."); st.appendChild(li2);
+    li2.textContent = (p.short || p.name) + (p.bin ? " is the bin at the red dot, " + p.where + ". Check the bin sign before you load." : p.where ? " is " + p.where + (p.at === "fert" ? " (the red dot)." : " (the red dot). The map doesn’t show which bin — check the bin signs or ask at the office.") : " is at the red dot."); sk.appendChild(li2);   /* v94 always showing */
     if (p.has){ var li3 = document.createElement("li"); li3.dataset.n = "i"; li3.textContent = "In these bins: " + p.has + "."; st.appendChild(li3); }
+    dirSet(DIROPEN, !n && !p.note && !p.has);   /* v94 */
     var xs = q.map(function(k){ return k[0]; }), ys = q.map(function(k){ return Y(k[1]); });
     var b = { x: Math.min.apply(null, xs) - 20, y: Math.min.apply(null, ys) - 50, w: 0, h: 0 }; b.w = Math.max.apply(null, xs) + 20 - b.x; b.h = Math.max.apply(null, ys) + 30 - b.y;
     if (!KEEPVIEW) setTimeout(function(){ fit(b, 18); }, 0);
@@ -960,7 +974,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
     var LANG = "en"; try{ LANG = localStorage.getItem("ymap-lang") === "es" ? "es" : "en"; }catch(_){}
     if (/[?&]lang=es\b/.test(location.search)) LANG = "es";
     var EX = {
-      "where are you going?": "¿A dónde va?", "‹ back": "‹ Atrás", "follow the red line": "Siga la línea roja",
+      "where are you going?": "¿A dónde va?", "‹ back": "‹ Atrás", "follow the red line": "Siga la línea roja", "directions": "Indicaciones",
       "pinch, or tap all, to see the whole yard": "Pellizque o toque Todo para ver todo el patio", "all": "Todo",
       "you are here": "Usted está aquí", "drawing": "Dibujo", "photo": "Foto", "aerial photo: nj office of gis, 2020": "Foto aérea: NJ Office of GIS, 2020", "parking": "ESTACIONAMIENTO", "tuckahoe yard map": "Mapa del patio de Tuckahoe",
       "peach country · tap where you're going": "Peach Country · toque a dónde va", "gate": "PORTÓN", "back gate": "Portón trasero",
