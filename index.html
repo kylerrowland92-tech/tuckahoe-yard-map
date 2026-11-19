@@ -623,7 +623,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   function up(e){ var tap = e.type === "pointerup" && Object.keys(pts).length === 1 && pts[e.pointerId] && moved < 8 && !EDIT;
     delete pts[e.pointerId]; last = null; setTimeout(function(){ if (!Object.keys(pts).length) moved = 0; }, 0);
     if (!tap) return; var hitEl = document.elementFromPoint(e.clientX, e.clientY); if (!hitEl || !hitEl.closest) return;
-    var tel = hitEl.closest("a.tel"); if (tel){ tel.click(); return; }
+    var tel = hitEl.closest("a.tel"); if (tel){ var th = tel.getAttribute("href") || tel.getAttributeNS("http://www.w3.org/1999/xlink", "href"); window.__ymapDialed = th; if (th) window.location.href = th; return; }   /* an SVG link has no .click() — dial its number directly */
     var hg = hitEl.closest("[data-id].hit"); if (hg){ KEEPVIEW = true; try{ go(hg.getAttribute("data-id")); } finally { KEEPVIEW = false; } } }   /* Kyle 11/17 12:47 AM: a tap on the map keeps the map where it is */
   wrap.addEventListener("click", function(e){ if (e.isTrusted && e.target.closest && e.target.closest("a.tel")) e.preventDefault(); }, true);   // the tap handler above dials; stop a second dial
   wrap.addEventListener("pointerup", up); wrap.addEventListener("pointercancel", up);
