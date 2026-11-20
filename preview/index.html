@@ -779,7 +779,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
     if (!KEEPVIEW) setTimeout(function(){ fit(b, 18); }, 0);
     try{ if (location.hash !== "#" + id) history.replaceState(null, "", "#" + id); }catch(_){}
   }
-  function fromHash(){ var h = (location.hash || "").replace(/^#/, ""); if (h === "edit"){ if (!window.YMAP_PINOK){ try{ history.replaceState(null, "", location.pathname + location.search); }catch(_){} window.ymapPinAsk(location.search + "#edit"); return; } editOn(); return; }   /* v98: PIN first */ if (h && BY[h] && R[BY[h].at || h] && !BY[h].start) go(h); }
+  function fromHash(){ var h = (location.hash || "").replace(/^#/, ""); if (h === "dots"){ if (window.YMAP_PINOK){ if (!DOTMODE) location.reload(); } else { try{ history.replaceState(null, "", location.pathname + location.search); }catch(_){} window.ymapPinAsk(location.search + "#dots"); } return; }   /* v100 (Kyle 11/20 12:25 AM): #dots added to a page that is already open now opens dots mode (it used to need a fresh load) */ if (h === "edit"){ if (!window.YMAP_PINOK){ try{ history.replaceState(null, "", location.pathname + location.search); }catch(_){} window.ymapPinAsk(location.search + "#edit"); return; } editOn(); return; }   /* v98: PIN first */ if (h && BY[h] && R[BY[h].at || h] && !BY[h].start) go(h); }
   window.addEventListener("hashchange", fromHash);
   showCats();
   svg.querySelectorAll("text").forEach(function(t){ if (!t.closest(".youhere") && !t.querySelector("tspan")) t.textContent = tc(t.textContent); });
