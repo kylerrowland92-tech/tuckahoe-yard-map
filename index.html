@@ -232,14 +232,20 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   function m2px(nx, ny, z){ var ax = AW - ny, ay = nx, mx = GEO.a * ax + GEO.b * ay + GEO.tx, my = GEO.b * ax - GEO.a * ay + GEO.ty, r = zres(z); return [(mx + ORIG) / r, (ORIG - my) / r]; }
   function photoLevel(z){ if (photoTiles["g" + z]) return photoTiles["g" + z];
     var r = zres(z), k = GEO.a * GEO.a + GEO.b * GEO.b, o = m2px(0, 0, z), A = r * GEO.b / k, C = r * GEO.a / k, B = -r * GEO.a / k, D = r * GEO.b / k;
-    var g = el("g", { transform: "matrix(" + [A, B, C, D, -(A * o[0] + C * o[1]) + PHSHIFT[0], -(B * o[0] + D * o[1]) + PHSHIFT[1]].join(" ") + ")" }, photoG);   /* v83: exact (no rounding) */
+    /* v96: the same placement, written with small numbers. Tiles used to sit at their world position (x up to 150,000,000 at zoom 21) and the
+       matrix pulled them back; a browser's SVG math can't hold numbers that big exactly, so the sharp levels landed a few pixels off, each tile
+       differently (lines along the tile edges, colours not meeting). Now each level counts from its own corner tile (bx, by). */
+    var bx = Math.floor(o[0] / 256), by = Math.floor(o[1] / 256), dx = bx * 256 - o[0], dy = by * 256 - o[1];
+    var g = el("g", { transform: "matrix(" + [A, B, C, D, A * dx + C * dy + PHSHIFT[0], B * dx + D * dy + PHSHIFT[1]].join(" ") + ")", "data-z": z }, photoG);
+    g._bx = bx; g._by = by;
+    var above = Array.prototype.filter.call(photoG.children, function(c){ return c !== g && Number(c.getAttribute("data-z")) > z; })[0]; if (above) photoG.insertBefore(g, above);   /* sharper levels stay on top */
     photoTiles["g" + z] = g; return g; }
   function photoOff(a){ if (window.photoOff) window.photoOff(a); }
   function photoArea(x0, y0, x1, y1, z, max){
     var c = [m2px(x0, y0, z), m2px(x1, y0, z), m2px(x0, y1, z), m2px(x1, y1, z)], xs = c.map(function(q){ return q[0]; }), ys = c.map(function(q){ return q[1]; });
     var tx0 = Math.floor(Math.min.apply(null, xs) / 256), tx1 = Math.floor(Math.max.apply(null, xs) / 256), ty0 = Math.floor(Math.min.apply(null, ys) / 256), ty1 = Math.floor(Math.max.apply(null, ys) / 256), g = photoLevel(z), n = 0;
     for (var ty = ty0; ty <= ty1; ty++) for (var tx = tx0; tx <= tx1; tx++){ var key = z + "/" + ty + "/" + tx; if (photoTiles[key]) continue; if (++n > max) return;
-      var im = el("image", { x: tx * 256 - 1, y: ty * 256 - 1, width: 258, height: 258, preserveAspectRatio: "none" }, g);
+      var im = el("image", { x: (tx - g._bx) * 256 - 1, y: (ty - g._by) * 256 - 1, width: 258, height: 258, preserveAspectRatio: "none" }, g);
       (function(im, z2, tx2, ty2, key2){
         im.addEventListener("load", function(){ photoOK++; });
         im.addEventListener("error", function(){ if (im.dataset.g){ gFail(); im.removeAttribute("data-g"); im.setAttribute("href", NJT + key2); return; } photoFails++; if (photoFails > 6 && !photoOK) photoOff(true); });
