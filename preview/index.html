@@ -1,4 +1,54 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="description" content="Peach Country Tuckahoe yard map — tap where you are going."><style>*,*::before,*::after{box-sizing:border-box}html,body{margin:0;padding:0}[hidden]{display:none!important}</style></head><body><script>window.YMAP_AT0 = location.search + location.hash;</script><title>Tuckahoe Yard Map</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="description" content="Peach Country Tuckahoe yard map — tap where you are going."><style>*,*::before,*::after{box-sizing:border-box}html,body{margin:0;padding:0}[hidden]{display:none!important}</style></head><body><script>window.YMAP_AT0 = location.search + location.hash;
+/* v98 (Kyle 11/20 12:00 AM: "the edit screen was too easy to get to … there should be a pin"). #edit (Move mode) and #dots ask for a PIN.
+   Without it the page is the plain customer map, guards on. The page holds only a scrambled form of the PIN (PBKDF2, 150,000 rounds).
+   A right PIN is remembered on that device. Moves were always saved on the device only; this page has no server to protect. */
+(function(){
+  var H = "75662ac00edf8128f680c3264c4a12e57caf034d51a11132fed8a9c26f8873fc", SALT = "tuckahoe-yard-map-edit-v1", K = "ymap-pin-ok", KL = "ymap-pin-lock", RE = /[?&]edit\b|#edit|#dots|[?&]dots\b/;
+  var ok = false; try{ ok = localStorage.getItem(K) === H; }catch(_){}
+  window.YMAP_PINOK = ok;
+  function hex(buf){ return Array.prototype.map.call(new Uint8Array(buf), function(b){ return ("0" + b.toString(16)).slice(-2); }).join(""); }
+  function scramble(pin){ var e = new TextEncoder(); return crypto.subtle.importKey("raw", e.encode(pin), "PBKDF2", false, ["deriveBits"]).then(function(k){
+    return crypto.subtle.deriveBits({ name: "PBKDF2", salt: e.encode(SALT), iterations: 150000, hash: "SHA-256" }, k, 256); }).then(hex); }
+  function lockLeft(){ try{ var l = JSON.parse(localStorage.getItem(KL) || "null"); if (l && l.until > Date.now()) return l.until - Date.now(); }catch(_){} return 0; }
+  function miss(){ try{ var l = JSON.parse(localStorage.getItem(KL) || "null") || { n: 0, until: 0 }; l.n++; if (l.n >= 5){ l.until = Date.now() + 5 * 60 * 1000; l.n = 0; } localStorage.setItem(KL, JSON.stringify(l)); }catch(_){} }
+  var box = null;
+  window.ymapPinAsk = function(want){
+    if (box) return;
+    box = document.createElement("div"); box.id = "pinBox"; box.setAttribute("role", "dialog"); box.setAttribute("aria-label", "PIN");
+    box.style.cssText = "position:fixed;inset:0;z-index:99990;background:rgba(20,22,26,.72);display:flex;align-items:center;justify-content:center;font:16px system-ui,sans-serif";
+    box.innerHTML = '<form style="background:#fff;color:#1c1f24;border-radius:14px;padding:20px;width:min(320px,88vw);box-shadow:0 10px 40px rgba(0,0,0,.4)">' +
+      '<div style="font-weight:700;font-size:18px;margin-bottom:6px">Yard staff only</div><div style="margin-bottom:12px;color:#4a5058">Enter the PIN to move things on the map.</div>' +
+      '<input id="pinIn" type="password" inputmode="numeric" autocomplete="off" aria-label="PIN" style="width:100%;font-size:22px;padding:10px;border:2px solid #9aa3ad;border-radius:10px;letter-spacing:4px">' +
+      '<div id="pinMsg" role="status" style="min-height:22px;margin:8px 0;color:#b3261e"></div>' +
+      '<div style="display:flex;gap:10px"><button type="button" id="pinNo" style="flex:1;font-size:16px;padding:11px;border-radius:10px;border:1px solid #9aa3ad;background:#fff;color:#1c1f24">Cancel</button>' +
+      '<button type="submit" id="pinGo" style="flex:1;font-size:16px;padding:11px;border-radius:10px;border:0;background:#1f5fbf;color:#fff;font-weight:700">Unlock</button></div></form>';
+    document.body.appendChild(box);
+    var inp = box.querySelector("#pinIn"), msg = box.querySelector("#pinMsg"), go = box.querySelector("#pinGo");
+    function close(){ box.remove(); box = null; }
+    box.querySelector("#pinNo").addEventListener("click", close);
+    box.querySelector("form").addEventListener("submit", function(ev){ ev.preventDefault();
+      var left = lockLeft(); if (left){ msg.textContent = "Too many tries. Wait " + Math.ceil(left / 60000) + " min."; return; }
+      var v = (inp.value || "").trim(); if (!v) return;
+      if (!(window.crypto && crypto.subtle)){ msg.textContent = "This browser can't check the PIN."; return; }
+      go.disabled = true; msg.textContent = "Checking…";
+      scramble(v).then(function(x){ go.disabled = false;
+        if (x !== H){ miss(); inp.value = ""; var l2 = lockLeft(); msg.textContent = l2 ? "Too many tries. Wait " + Math.ceil(l2 / 60000) + " min." : "Wrong PIN."; return; }
+        try{ localStorage.setItem(K, H); localStorage.removeItem(KL); }catch(_){}
+        try{ sessionStorage.setItem("ymap-pin-once", H); }catch(_){}
+        try{ history.replaceState(null, "", location.pathname + want); }catch(_){} location.reload();
+      }, function(){ go.disabled = false; msg.textContent = "This browser can't check the PIN."; });
+    });
+    setTimeout(function(){ try{ inp.focus(); }catch(_){} }, 50);
+  };
+  if (!ok){ try{ if (sessionStorage.getItem("ymap-pin-once") === H){ ok = window.YMAP_PINOK = true; } }catch(_){} }   /* private windows that won't keep localStorage */
+  if (!ok && RE.test(window.YMAP_AT0)){
+    var want = window.YMAP_AT0, q = location.search.replace(/([?&])(edit|dots)\b(=[^&]*)?&?/g, "$1").replace(/[?&]$/, "");
+    window.YMAP_AT0 = q;
+    try{ history.replaceState(null, "", location.pathname + q); }catch(_){ try{ location.hash = ""; }catch(__){} }
+    document.addEventListener("DOMContentLoaded", function(){ window.ymapPinAsk(want); });
+  }
+})();
+</script><title>Tuckahoe Yard Map</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;600;700&display=swap">
 <style>
@@ -718,7 +768,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
     if (!KEEPVIEW) setTimeout(function(){ fit(b, 18); }, 0);
     try{ if (location.hash !== "#" + id) history.replaceState(null, "", "#" + id); }catch(_){}
   }
-  function fromHash(){ var h = (location.hash || "").replace(/^#/, ""); if (h === "edit"){ editOn(); return; } if (h && BY[h] && R[BY[h].at || h] && !BY[h].start) go(h); }
+  function fromHash(){ var h = (location.hash || "").replace(/^#/, ""); if (h === "edit"){ if (!window.YMAP_PINOK){ try{ history.replaceState(null, "", location.pathname + location.search); }catch(_){} window.ymapPinAsk(location.search + "#edit"); return; } editOn(); return; }   /* v98: PIN first */ if (h && BY[h] && R[BY[h].at || h] && !BY[h].start) go(h); }
   window.addEventListener("hashchange", fromHash);
   showCats();
   svg.querySelectorAll("text").forEach(function(t){ if (!t.closest(".youhere") && !t.querySelector("tspan")) t.textContent = tc(t.textContent); });
