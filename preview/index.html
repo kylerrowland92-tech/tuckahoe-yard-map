@@ -117,7 +117,7 @@ svg:not(.photo) .photolayer,svg:not(.photo) .phcredit{display:none}
 svg.dotmode .youhere circle,svg.dotmode circle.youhere,svg.dotmode .pulse{cursor:move}
 svg.dotmode circle.youhere,svg.dotmode g.youhere circle{pointer-events:auto}
 svg.dotmode circle.pulse{pointer-events:auto}   /* the tiny dot is easier to grab by its glow */
-svg.editing .bindot{r:2.6px;cursor:move}
+svg.editing .bindot{r:3.2px;cursor:move}
 svg:not(.near) .binlead{display:none}
 .binlbl{font-family:var(--f-sign);font-weight:700;font-size:calc(11px * var(--k, 1));stroke-width:calc(3px * var(--k, 1)) !important;fill:#fff;paint-order:stroke;stroke:#111;stroke-width:1.3px;text-anchor:middle}
 .bindot{fill:#ffd400;stroke:#111;stroke-width:.5}
@@ -610,7 +610,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
       var edge = dir < 0 ? Math.min.apply(null, ps.map(function(p){ return p.bin[1]; })) - 6 : Math.max.apply(null, ps.map(function(p){ return p.bin[1]; })) + 9;
       ps.forEach(function(p, i){ var lv = n - 1 - i, ly = edge + dir * lv * 5.6, up = ly < p.bin[1];
         var lead = el("path", { "class": "binlead", d: "M" + p.bin[0] + " " + p.bin[1] + " L" + p.bin[0] + " " + (ly + (up ? 1 : -3.6)) }, bg);
-        var dotEl = el("circle", { "class": "bindot", cx: p.bin[0], cy: p.bin[1], r: 1.4, "data-dot": p.id }, bg); p.__bin0 = p.bin.slice();
+        var dotEl = el("circle", { "class": "bindot", cx: p.bin[0], cy: p.bin[1], r: 1.9, "data-dot": p.id }, bg); p.__bin0 = p.bin.slice();
         var t = el("text", { "class": "binlbl", x: p.bin[0] - 1, y: ly, "data-lid": "bin:" + p.id, style: "text-anchor:start" }, bg); t.textContent = SH[p.id] || p.short; t.__lead = lead; t.__dot = p.bin; dotEl.__t = t; }); };
     stack(["bk-red-38", "bk-red-34", "bk-yel-38", "bk-yel-34", "bk-goose", "bk-wr-34"], -1);   /* Stone #2 far row: names above */
     stack(["bk-rr-48", "bk-white-bar", "bk-wr-115", "bk-rice", "bk-gray-38", "bk-bar-sand"], 1);   /* Stone #2 office row: names below */
