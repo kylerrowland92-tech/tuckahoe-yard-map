@@ -180,6 +180,8 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 }
 .btns button:focus-visible,.zoom button:focus-visible,.ask button:focus-visible{outline:2px solid var(--route);outline-offset:2px}
 .dest{font-family:var(--f-sign);font-weight:800;font-size:24px;line-height:1.05}
+/* v105 (Kyle 11/22 12:25 AM): the place name under the map in yellow, like the names on the map, with the same dark edge so it reads on a light screen too */
+.dest{color:#ffd400;text-shadow:-1px -1px 0 #111,1px -1px 0 #111,-1px 1px 0 #111,1px 1px 0 #111,0 1px 3px rgba(0,0,0,.45)}
 .steps{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px;max-height:26vh;overflow-y:auto;font-size:14px}
 .steps li{display:grid;grid-template-columns:22px 1fr;gap:6px;align-items:start}
 /* v94 (Kyle 11/19 10:07 AM): the directions fold away on a phone; the red line is enough for most people */
