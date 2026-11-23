@@ -123,6 +123,7 @@ svg:not(.near) .binlead{display:none}
 .bindot{fill:#ffd400;stroke:#111;stroke-width:.5}
 svg:not(.near) .binlbl,svg:not(.near) .bindot{display:none}
 svg.near [data-id="more-bulk"] text.lbl,svg.near [data-id="bulk-front"] text.lbl{display:none}
+.lbl.lblhide,.lmk.lblhide{opacity:0 !important;pointer-events:none}.lbl,.lmk{transition:opacity .15s}   /* v106 a name that would land on another waits until you zoom in */
 .zoom button.ph{font-size:9px;font-weight:800;letter-spacing:-.02em}
 body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 /* Kyle 11/18 4:51 PM: TV static when the map might be captured (red, black and white, like a dead channel) */
@@ -474,8 +475,8 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
       el("path", { "class": "pl", d: "M" + (cx - rr) + " " + (cy + rr * .55) + " Q" + cx + " " + (cy - rr * 1.25) + " " + (cx + rr) + " " + (cy + rr * .55) + " Z", fill: pc, stroke: "rgba(255,255,255,.22)", "stroke-width": 1 }, sg);
       el("path", { d: "M" + (cx - rr * .55) + " " + (cy + rr * .05) + " Q" + (cx - rr * .1) + " " + (cy - rr * .62) + " " + (cx + rr * .35) + " " + (cy - rr * .2), fill: "none", stroke: "rgba(255,255,255,.25)", "stroke-width": 1.4, "stroke-linecap": "round" }, sg);
       var lines = String(name).split(" ");
-      var tl = function(yy, s2){ var t0 = el("text", { x: cx, y: yy, "class": "lbl", "text-anchor": "middle" }, g); t0.textContent = s2; };
-      if (lines.length > 1 && !p.label && name.length > 9){ tl(cy + rr * .55 + 11, lines[0]); tl(cy + rr * .55 + 22, lines.slice(1).join(" ")); }
+      var tl = function(yy, s2){ var t0 = el("text", { x: cx, y: yy, "class": "lbl", "text-anchor": "middle" }, g); t0.textContent = s2; return t0; };
+      if (lines.length > 1 && !p.label && name.length > 9){ tl(cy + rr * .55 + 11, lines[0]); tl(cy + rr * .55 + 22, lines.slice(1).join(" ")).setAttribute("data-l2", "11"); }   // v106 second line: its gap grows with the letters
       else tl(cy + rr * .55 + 11, name);
     } else {
       var r = p.k === "y" ? [p.r[0], Y(p.r[1]), p.r[2], Y(p.r[1] + p.r[3]) - Y(p.r[1])] : [p.r[0], Y(p.r[1] + p.r[3] / 2) - p.r[3] / 2, p.r[2], p.r[3]];
@@ -594,8 +595,8 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
           el("path", { d: "M" + tx + " " + (ty - 1) + " h11 M" + tx + " " + (ty + 1.5) + " h11", stroke: "var(--pallet-edge)", "stroke-width": .4 }, g); } }
       var vert = r[3] > r[2] * 2.2, tcx = r[0] + r[2] / 2, tcy = p.pstack ? r[1] + r[3] - 4 : p.trucks ? r[1] + r[3] - 5 : p.gate ? r[1] - 4 : p.culdesac ? r[1] - 6 : p.bins2 ? r[1] - 4 : p.patio ? r[1] - 5 : p.truck ? r[1] + r[3] - 7 : r[1] + r[3] / 2 + 4;
       if (p.id === "hoop-house") for (var rb = 1; rb < 8; rb++) el("path", { d: "M" + (r[0] + rb * r[2] / 8) + " " + (r[1] + 3) + " v" + (r[3] - 6), stroke: "var(--bldg-ink)", "stroke-width": .8, opacity: .35 }, g);   // the hoop ribs
-      var t = el("text", { x: tcx, y: tcy + (p.big ? 3 : 0), "class": "lbl " + (p.k === "b" ? "bl" : (p.k === "x" ? "sm" : "")), "text-anchor": "middle" }, g); t.textContent = name; if (p.big) t.setAttribute("font-size", "16"); if (p.gate) t.setAttribute("style", "fill:#ffd21f;font-size:calc(18px * var(--k, 1));font-weight:800");   /* v70: Back Gate bigger */ if (p.culdesac){ t.textContent = ""; ["Belgard /", "EP Henry"].forEach(function(w, i){ var ts = document.createElementNS(NS, "tspan"); ts.setAttribute("x", tcx); ts.setAttribute("y", r[1] + r[3] + 2 + i * 11); ts.textContent = w; t.appendChild(ts); }); }   /* two short lines so it clears Truck Parking */
-      if (p.id === "receiving"){ t.textContent = ""; ["Shipping /", "Receiving"].forEach(function(w, i){ var ts = document.createElementNS(NS, "tspan"); ts.setAttribute("x", tcx); ts.setAttribute("y", r[1] + 38 + i * 11); ts.textContent = w; t.appendChild(ts); }); }
+      var t = el("text", { x: tcx, y: tcy + (p.big ? 3 : 0), "class": "lbl " + (p.k === "b" ? "bl" : (p.k === "x" ? "sm" : "")), "text-anchor": "middle" }, g); t.textContent = name; if (p.big) t.setAttribute("font-size", "16"); if (p.gate) t.setAttribute("style", "fill:#ffd21f;font-size:calc(18px * var(--k, 1));font-weight:800");   /* v70: Back Gate bigger */ if (p.culdesac){ t.textContent = ""; ["Belgard /", "EP Henry"].forEach(function(w, i){ var ts = document.createElementNS(NS, "tspan"); ts.setAttribute("x", tcx); if (i){ ts.setAttribute("dy", 11); ts.setAttribute("data-dy2", 11); } else ts.setAttribute("y", r[1] + r[3] + 2); ts.textContent = w; t.appendChild(ts); }); }   /* two short lines so it clears Truck Parking · v106: line gap grows when zoomed out */
+      if (p.id === "receiving"){ t.textContent = ""; ["Shipping /", "Receiving"].forEach(function(w, i){ var ts = document.createElementNS(NS, "tspan"); ts.setAttribute("x", tcx); if (i){ ts.setAttribute("dy", 11); ts.setAttribute("data-dy2", 11); } else ts.setAttribute("y", r[1] + 38); ts.textContent = w; t.appendChild(ts); }); }   // v106 line gap grows when zoomed out
       if (p.huge){ t.setAttribute("style", "font-size:19px;font-weight:800;letter-spacing:.04em"); t.setAttribute("y", tcy + 6.5);   /* v77 (Kyle 8:48 PM): Office fits the office roof, no bigger */ }   /* v70: Office bigger */
       if (vert){ t.setAttribute("y", p.lblBelow ? r[1] + r[3] + 11 : r[1] - 5); }   /* Kyle 11/16: tall yards get their name flat, just above them — easier to read than sideways */
     }
@@ -637,7 +638,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
     el("rect", { x: r[0] - 1, y: r[1] + r[3] - h, width: r[2] + 2, height: h, rx: 2, fill: "#5d7488", stroke: "var(--bldg-ink)", "stroke-width": .8 }, g);
     [["Mechanic", r[1] + r[3] - h + 8], ["shop", r[1] + r[3] - h + 16]].forEach(function(t){ var e = el("text", { x: r[0] + r[2] / 2, y: t[1], "text-anchor": "middle", "font-size": 6.5, "font-weight": 800, fill: "#fff", "font-family": "Barlow Condensed, Arial Narrow, sans-serif" }, g); e.textContent = t[0]; });
     var lb = g.querySelector("text.lbl"); if (lb){ lb.textContent = ""; lb.setAttribute("style", "font-size:9.5px"); lb.setAttribute("text-anchor", "end");
-      ["Fertilizer", "Building"].forEach(function(w, i){ var ts = document.createElementNS(NS, "tspan"); ts.setAttribute("x", r[0] - 4); ts.setAttribute("y", r[1] + r[3] / 2 - 8 + i * 11); ts.textContent = w; lb.appendChild(ts); }); } })();
+      ["Fertilizer", "Building"].forEach(function(w, i){ var ts = document.createElementNS(NS, "tspan"); ts.setAttribute("x", r[0] - 4); if (i){ ts.setAttribute("dy", 11); ts.setAttribute("data-dy2", 11); } else ts.setAttribute("y", r[1] + r[3] / 2 - 8); ts.textContent = w; lb.appendChild(ts); }); } })();   // v106 line gap grows when zoomed out
   // the gate, parking, the evergreens by the driveway
   var gx = RD.main[0][0];
   el("rect", { x: gx - 9, y: ROADY - 14, width: 18, height: 4, fill: "var(--ink)", "class": "draw" }); text(gx + 14, ROADY - 9, "GATE", "sm", null, "start");
@@ -664,12 +665,16 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   function size(){ var r = wrap.getBoundingClientRect(); return { w: Math.max(1, r.width), h: Math.max(1, r.height) }; }
   function sMax(){ var z = size(); return Math.max(FULL.w / z.w, FULL.h / z.h) * 1.05; }
   var SMALLDOT = false;   /* v88: true while a Stone #1 / #2 bin is chosen */
+  var LK = 1, DCL = 0;   // v106 the names' zoom size (--k), and the waiting de-clutter pass
   function apply(){
     var z = size(); v.s = Math.min(sMax(), Math.max(svg.classList.contains("photo") ? 0.07 : 0.18, v.s));
     var w = z.w * v.s, h = z.h * v.s;
     v.x = Math.min(FULL.x + FULL.w + w * 0.25, Math.max(FULL.x - w * 0.25, v.x)); v.y = Math.min(FULL.y + FULL.h + h * 0.1, Math.max(FULL.y - h * 0.1, v.y));
     svg.setAttribute("viewBox", (v.x - w / 2) + " " + (v.y - h / 2) + " " + w + " " + h);
-    svg.style.setProperty("--k", (v.s >= 1 ? Math.min(2.6, 1 + (v.s - 1) * 0.7) : Math.max(0.12, v.s)).toFixed(3));   /* v77: zoomed in, names stay the same size on screen instead of growing huge */
+    LK = +(v.s >= 1 ? Math.min(2.6, 1 + (v.s - 1) * 0.7) : Math.max(0.12, v.s)).toFixed(3); svg.style.setProperty("--k", LK.toFixed(3));
+    svg.querySelectorAll("tspan[data-dy2]").forEach(function(t){ t.setAttribute("dy", (+t.getAttribute("data-dy2") * Math.max(1, LK)).toFixed(2)); });   // v106 zoomed out, the gap between two lines grows with the letters (zoomed in: as before)
+    try{ if (typeof LOFF === "object" && LOFF) svg.querySelectorAll("text[data-l2]").forEach(lplace); }catch(_){}   // v106 same for two-word pile names
+    if (!DCL) DCL = (window.requestAnimationFrame || setTimeout)(function(){ DCL = 0; try{ declutter(); }catch(_){} });   /* v77: zoomed in, names stay the same size on screen instead of growing huge */
     svg.style.setProperty("--pop", Math.max(0, Math.min(1, (v.s - 0.3) / 0.5)).toFixed(2));   /* v74: piles fade between zoom 0.8 and 0.3 */
     svg.classList.toggle("near", v.s < 0.5);   /* v68: bin names show when you zoom in close */
     if (svg.classList.contains("photo") && v.s < 1.6) photoArea(v.x - w / 2, v.y - h / 2, v.x + w / 2, v.y + h / 2, v.s < 0.16 && GSESS ? 21 : v.s < 0.35 && GSESS ? 20 : v.s < 0.75 ? 19 : 18, 60);   /* v69: only the tiles you look at, sharper as you zoom in (keeps Google inside its free tiles) */
@@ -706,9 +711,9 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
         var d = Math.abs(e.clientY - (r.top + r.bottom) / 2) * 4 + Math.abs(e.clientX - (r.left + r.right) / 2); if (d < bestL){ bestL = d; binId = String(n.getAttribute("data-lid") || "").replace(/^bin:/, ""); } });   /* on a name: that name */
       if (!binId){ Array.prototype.forEach.call(svg.querySelectorAll(".bindot"), function(n){ var r = n.getBoundingClientRect(); if (!r.width) return;
         var dx = e.clientX - (r.left + r.right) / 2, dy = e.clientY - (r.top + r.bottom) / 2, d = Math.sqrt(dx * dx + dy * dy); if (d < bestD){ bestD = d; dotId = n.getAttribute("data-dot"); } }); binId = dotId; } }   /* else the nearest yellow dot */
-    if (binId && BY[binId] && BY[binId].bin){ KEEPVIEW = true; try{ go(binId); } finally { KEEPVIEW = false; } return; }
-    var cg = hitEl.closest("[data-go]"); if (cg && BY[cg.getAttribute("data-go")]){ KEEPVIEW = true; try{ go(cg.getAttribute("data-go")); } finally { KEEPVIEW = false; } return; }   /* v103: the containers */
-    if (hg){ KEEPVIEW = true; try{ go(hg.getAttribute("data-id")); } finally { KEEPVIEW = false; } } }   /* Kyle 11/17 12:47 AM: a tap on the map keeps the map where it is */
+    if (binId && BY[binId] && BY[binId].bin){ go(binId); return; }   /* v107 (Kyle 11/22 10:27 PM): a tap takes you to the whole red line from "You are here", same as the list */
+    var cg = hitEl.closest("[data-go]"); if (cg && BY[cg.getAttribute("data-go")]){ go(cg.getAttribute("data-go")); return; }   /* v103: the containers · v107 the map moves to the red line too */
+    if (hg){ go(hg.getAttribute("data-id")); } }   /* v107 (Kyle 11/22 10:27 PM, replacing 11/17 "keeps the map where it is"): a tap on a place moves the map to its whole red line, starting at "You are here" — the same as picking it from the list */
   wrap.addEventListener("click", function(e){ if (e.isTrusted && e.target.closest && e.target.closest("a.tel")) e.preventDefault(); }, true);   // the tap handler above dials; stop a second dial
   wrap.addEventListener("pointerup", up); wrap.addEventListener("pointercancel", up);
   wrap.addEventListener("wheel", function(e){ e.preventDefault(); zoomAt(Math.exp(e.deltaY * 0.0015), e.clientX, e.clientY); }, { passive: false });
@@ -901,12 +906,12 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   };
   var EDIT = false, drag = null;
   function editOn(){
-    svg.classList.add("editing"); EDIT = true; clearRoute(); btns.hidden = true; routeBox.hidden = false; backB.hidden = true; askText.textContent = "Move mode";
+    svg.classList.add("editing"); EDIT = true; try{ declutter(); }catch(_){}   /* v106 Move mode: every name shows */ clearRoute(); btns.hidden = true; routeBox.hidden = false; backB.hidden = true; askText.textContent = "Move mode";
     document.getElementById("dest").textContent = "Drag piles and buildings into place";
     var st = document.getElementById("steps"); st.textContent = "";
     var bar = document.createElement("div"); bar.className = "btns"; bar.style.marginTop = "6px";
     [["Move words: off", function(){ WMODE = !WMODE; this.textContent = WMODE ? "Move words: ON" : "Move words: off"; this.setAttribute("aria-pressed", WMODE); }], ["Copy positions", copyPos], ["Undo my moves", function(){ OFF = JSON.parse(JSON.stringify(BAKED)); LOFF = JSON.parse(JSON.stringify(LBAKED)); try{ localStorage.removeItem("ymap-off"); localStorage.removeItem("ymap-loff"); }catch(_){} svg.querySelectorAll("text[data-lid]").forEach(lplace); svg.querySelectorAll("[data-id]").forEach(function(g){ g.removeAttribute("transform"); }); Object.keys(OFF).forEach(place); RD = JSON.parse(JSON.stringify(RD_BAKED)); try{ localStorage.removeItem("ymap-roads"); }catch(_){} drawRoads(); drawHandles(); }],
-     ["Done", function(){ EDIT = false; svg.classList.remove("editing"); drawHandles(); try{ history.replaceState(null, "", location.pathname + location.search); }catch(_){} bar.remove(); outBox.hidden = true; showCats(); }]].forEach(function(x){
+     ["Done", function(){ EDIT = false; svg.classList.remove("editing"); try{ declutter(); }catch(_){} drawHandles(); try{ history.replaceState(null, "", location.pathname + location.search); }catch(_){} bar.remove(); outBox.hidden = true; showCats(); }]].forEach(function(x){
       var b = document.createElement("button"); b.type = "button"; b.textContent = x[0]; b.addEventListener("click", x[1]); bar.appendChild(b); });
     routeBox.appendChild(bar); routeBox.appendChild(outBox);
     var li = document.createElement("li"); li.dataset.n = "i"; li.textContent = "Drag a pile, yard or building with one finger. Pinch or use + − to zoom. When you\u2019re done, tap Copy positions and paste it to Claude, who puts the moves on the map for everyone."; st.appendChild(li);
@@ -941,9 +946,30 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   (function(){ var n = 0; svg.querySelectorAll("text").forEach(function(t){ if (t.dataset.lid || t.closest(".handles,.youhere") || t.classList.contains("flag") || t.classList.contains("phcredit")) return;
     var g = t.closest("[data-id]"); t.dataset.lid = g ? g.dataset.id + ":" + Array.prototype.indexOf.call(g.querySelectorAll("text"), t) : "t" + (n++); }); })();
   function lplace(t){ var o = LOFF[t.dataset.lid]; if (t.__t0 === undefined) t.__t0 = t.getAttribute("transform") || "";
-    var tr = (o ? "translate(" + o[0] + " " + o[1] + ") " : "") + t.__t0; if (tr.trim()) t.setAttribute("transform", tr.trim()); else t.removeAttribute("transform");
+    var l2 = t.getAttribute("data-l2") ? Math.max(0, LK - 1) * +t.getAttribute("data-l2") : 0;   // v106
+    var tr = (o || l2 ? "translate(" + (o ? o[0] : 0) + " " + ((o ? o[1] : 0) + l2) + ") " : "") + t.__t0; if (tr.trim()) t.setAttribute("transform", tr.trim()); else t.removeAttribute("transform");
     if (t.__lead && t.__dot){ var x = +t.getAttribute("x") + (o ? o[0] : 0), y = +t.getAttribute("y") + (o ? o[1] : 0), up = y < t.__dot[1]; t.__lead.setAttribute("d", "M" + t.__dot[0] + " " + t.__dot[1] + " L" + x + " " + (y + (up ? 1 : -3.6))); } }
   svg.querySelectorAll("text[data-lid]").forEach(lplace);
+  /* v106 (Kyle 11/22 10:10 PM: zoomed out, the names "get cluttered and overlap"): after each zoom or pan, names are placed in order —
+     "You are here" and the picked place first, then yellow place names, then blue landmarks, then small names — and a name that would
+     land on one already placed waits (fades out) until you zoom in enough for it to fit. A two-line pile name counts as one name.
+     Move mode shows every name. Taps on the places themselves work the same. */
+  function declutter(){
+    var all = svg.querySelectorAll("text.lbl, text.lmk");
+    if (EDIT){ all.forEach(function(t){ t.classList.remove("lblhide"); }); return; }
+    var units = {}, order = [];
+    all.forEach(function(t){ if (t.closest(".youhere") || t.classList.contains("flag")) return; var g = t.closest("[data-id]"), cl = t.classList, kind = cl.contains("dest") ? 3 : cl.contains("lmk") ? 2 : cl.contains("sm") ? 0 : 1;
+      var key = (g ? g.dataset.id : t.dataset.lid || "") + "|" + kind; if (!units[key]){ units[key] = { ts: [], kind: kind, id: g ? g.dataset.id : "", i: order.length }; order.push(key); } units[key].ts.push(t); });
+    var boxes = [], hit = function(b){ for (var i = 0; i < boxes.length; i++){ var c = boxes[i]; if (b.l < c.r && b.r > c.l && b.t < c.b && b.b > c.t) return true; } return false; };
+    var boxOf = function(ts){ var b = null; ts.forEach(function(t){ var r = t.getBoundingClientRect(); if (r.width < 1 || r.height < 1) return; if (!b) b = { l: r.left, t: r.top, r: r.right, b: r.bottom }; else { b.l = Math.min(b.l, r.left); b.t = Math.min(b.t, r.top); b.r = Math.max(b.r, r.right); b.b = Math.max(b.b, r.bottom); } }); if (b){ b.l -= 2; b.r += 2; b.t += 1; b.b -= 1; } return b; };
+    svg.querySelectorAll(".youhere text, text.flag").forEach(function(t){ var b = boxOf([t]); if (b && getComputedStyle(t).display !== "none") boxes.push(b); });   // always shown
+    var us = order.map(function(k){ var u = units[k]; u.ts.forEach(function(t){ t.classList.remove("lblhide"); }); return u; });
+    us.forEach(function(u){ u.b = boxOf(u.ts); u.pri = u.id && u.id === curDest ? 9 : u.kind; });
+    us.forEach(function(u){ u.n = 0; if (u.b) us.forEach(function(w){ if (w !== u && w.b && w.pri >= u.pri && u.b.l < w.b.r && u.b.r > w.b.l && u.b.t < w.b.b && u.b.b > w.b.t) u.n++; }); });   // how many names it would crowd
+    us.sort(function(a, b){ return b.pri - a.pri || a.n - b.n || a.i - b.i; })   // most important first; then the ones in the way of the fewest others, so the most names fit
+      .forEach(function(u){ if (!u.b) return; var hide = hit(u.b); u.ts.forEach(function(t){ t.classList.toggle("lblhide", hide); }); if (!hide) boxes.push(u.b); });
+  }
+  window.ymapDeclutter = declutter;   // for the test
   /* v78: a bin's yellow dot can be dragged onto the real bin in Move mode (with Move words ON); saved as "dot:<bin>" */
   function dplace(id){ var p = BY[id], c = svg.querySelector('circle[data-dot="' + id + '"]'); if (!p || !c || !p.__bin0) return; var o = LOFF["dot:" + id] || [0, 0];
     p.bin = [Math.round((p.__bin0[0] + o[0]) * 10) / 10, Math.round((p.__bin0[1] + o[1]) * 10) / 10]; c.setAttribute("cx", p.bin[0]); c.setAttribute("cy", p.bin[1]); if (c.__t){ c.__t.__dot = p.bin; lplace(c.__t); } }
@@ -1166,7 +1192,7 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
     mo.observe(document.body, { childList: true, subtree: true, characterData: true });
     var btn = document.createElement("button"); btn.type = "button"; btn.className = "langsw";
     function label(){ btn.textContent = LANG === "es" ? "English" : "Español"; btn.setAttribute("aria-label", LANG === "es" ? "Switch to English" : "Cambiar a español"); document.documentElement.lang = LANG; }
-    btn.addEventListener("click", function(){ LANG = LANG === "es" ? "en" : "es"; try{ localStorage.setItem("ymap-lang", LANG); }catch(_){} label(); if (LANG === "es") walk(document.body); else restore(); });
+    btn.addEventListener("click", function(){ LANG = LANG === "es" ? "en" : "es"; try{ localStorage.setItem("ymap-lang", LANG); }catch(_){} label(); if (LANG === "es") walk(document.body); else restore(); try{ if (window.ymapDeclutter) setTimeout(window.ymapDeclutter, 30); }catch(_){} });   // v106 Spanish names are longer: re-check which fit
     var top = document.querySelector(".top"), qr = document.getElementById("qrOpen"); if (top) top.insertBefore(btn, qr || null);
     label(); if (LANG === "es") walk(document.body);
   })();
