@@ -711,9 +711,9 @@ body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
         var d = Math.abs(e.clientY - (r.top + r.bottom) / 2) * 4 + Math.abs(e.clientX - (r.left + r.right) / 2); if (d < bestL){ bestL = d; binId = String(n.getAttribute("data-lid") || "").replace(/^bin:/, ""); } });   /* on a name: that name */
       if (!binId){ Array.prototype.forEach.call(svg.querySelectorAll(".bindot"), function(n){ var r = n.getBoundingClientRect(); if (!r.width) return;
         var dx = e.clientX - (r.left + r.right) / 2, dy = e.clientY - (r.top + r.bottom) / 2, d = Math.sqrt(dx * dx + dy * dy); if (d < bestD){ bestD = d; dotId = n.getAttribute("data-dot"); } }); binId = dotId; } }   /* else the nearest yellow dot */
-    if (binId && BY[binId] && BY[binId].bin){ KEEPVIEW = true; try{ go(binId); } finally { KEEPVIEW = false; } return; }
-    var cg = hitEl.closest("[data-go]"); if (cg && BY[cg.getAttribute("data-go")]){ KEEPVIEW = true; try{ go(cg.getAttribute("data-go")); } finally { KEEPVIEW = false; } return; }   /* v103: the containers */
-    if (hg){ KEEPVIEW = true; try{ go(hg.getAttribute("data-id")); } finally { KEEPVIEW = false; } } }   /* Kyle 11/17 12:47 AM: a tap on the map keeps the map where it is */
+    if (binId && BY[binId] && BY[binId].bin){ go(binId); return; }   /* v107 (Kyle 11/22 10:27 PM): a tap takes you to the whole red line from "You are here", same as the list */
+    var cg = hitEl.closest("[data-go]"); if (cg && BY[cg.getAttribute("data-go")]){ go(cg.getAttribute("data-go")); return; }   /* v103: the containers · v107 the map moves to the red line too */
+    if (hg){ go(hg.getAttribute("data-id")); } }   /* v107 (Kyle 11/22 10:27 PM, replacing 11/17 "keeps the map where it is"): a tap on a place moves the map to its whole red line, starting at "You are here" — the same as picking it from the list */
   wrap.addEventListener("click", function(e){ if (e.isTrusted && e.target.closest && e.target.closest("a.tel")) e.preventDefault(); }, true);   // the tap handler above dials; stop a second dial
   wrap.addEventListener("pointerup", up); wrap.addEventListener("pointercancel", up);
   wrap.addEventListener("wheel", function(e){ e.preventDefault(); zoomAt(Math.exp(e.deltaY * 0.0015), e.clientX, e.clientY); }, { passive: false });
